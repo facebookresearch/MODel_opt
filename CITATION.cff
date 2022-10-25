@@ -14,4 +14,7 @@ title: "OLLA: Decreasing the Memory Usage of Neural Networks by Optimizing the L
 doi: 10.48550/arXiv.2210.12924
 date-released: 2022-10-24
 url: "https://arxiv.org/abs/2210.12924"
-
+preferred-citation:
+  type: article
+  month: 10
+  year: 2022
