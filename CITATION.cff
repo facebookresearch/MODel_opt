@@ -16,5 +16,17 @@ date-released: 2022-10-24
 url: "https://arxiv.org/abs/2210.12924"
 preferred-citation:
   type: article
+  authors:
+  - family-names: "Steiner"
+    given-names: "Benoit"
+    orcid: "https://orcid.org/0000-0002-5767-4976"
+  - family-names: "Elhoushi"
+    given-names: "Mostafa"
+  - family-names: "Kahn"
+    given-names: "Jacob"
+  - family-names: "Hegarty"
+    given-names: "James"
+  title: "OLLA: Decreasing the Memory Usage of Neural Networks by Optimizing the Lifetime and Location of Arrays"
+  doi: 10.48550/arXiv.2210.12924
   month: 10
   year: 2022
