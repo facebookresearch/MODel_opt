@@ -1,12 +1,12 @@
 # OLLA
 
-OLLA (Optimizing the Lifetime and Location of Arrays) makes it possible to trainlarger deep neural networks on existing hardware. OLLA optimizes the order in which the neural network operators are executed to minimize peak memory usage. Furthermore eliminates memory fragmentation to ensure that no memory is wasted.
+OLLA (Optimizing the Lifetime and Location of Arrays) makes it possible to train larger deep neural networks on existing hardware. OLLA optimizes the order in which the neural network operators are executed to minimize peak memory usage. Furthermore OLLA eliminates memory fragmentation to ensure that no memory is wasted.
 
 ## Approach
  
 Our approach is described in detail on the [OLLA arXiv paper](https://arxiv.org/abs/2210.12924)
 
-## Get Started
+## Getting Started
 
 The source code will be available soon. 
 
