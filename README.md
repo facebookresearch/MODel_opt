@@ -3,12 +3,47 @@
 OLLA (Optimizing the Lifetime and Location of Arrays) makes it possible to train larger deep neural networks on existing hardware. OLLA optimizes the order in which the neural network operators are executed to minimize peak memory usage. Furthermore OLLA eliminates memory fragmentation to ensure that no memory is wasted.
 
 ## Approach
- 
+
 Our approach is described in detail on the [OLLA arXiv paper](https://arxiv.org/abs/2210.12924)
 
 ## Getting Started
 
-The source code will be available soon. 
+Install
+```
+conda create --name olla python=3.9
+conda activate olla
+conda install pytorch torchvision torchaudio torchtext -c pytorch
+pip install pandas intervaltree networkx graphviz
+conda config --add channels http://conda.anaconda.org/gurobi
+conda install gurobi
+pip install pydot
+```
+
+Run benchmarks:
+```
+python benchmarks.py
+```
+
+Run tests:
+```
+python -m unittest tests/dataflow_graph_test.py
+python -m unittest tests/torch_graph_importer_test.py
+python -m unittest tests/torch_graph_importer_test_vision.py
+python -m unittest tests/torch_graph_importer_test_transformers.py
+python -m unittest tests/simulator_test.py
+python -m unittest tests/utils_test.py
+python -m unittest tests/max_cut_test.py
+python -m unittest tests/fx_profiler_test.py
+python -m unittest tests/fx_optimizer_test.py
+python -m unittest tests/torch_scheduler_test.py
+python -m unittest tests/memory_planner_test.py # 1 tests fail
+python -m unittest tests/spill_profiler_test.py
+python -m unittest tests/training_graph_optimizer_test.py
+python -m unittest tests/ilp_solver_test.py
+python -m unittest tests/training_graph_optimizer_large_test.py # 1 test fails
+python -m unittest tests/scheduler_test.py $ 4 out of 8 tests fails
+python -m unittest tests/defragmenter_test.py # 1 out of 4 tests fails
+```
 
 ## Citation
 
