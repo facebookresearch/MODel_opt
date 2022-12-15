@@ -2,10 +2,12 @@ import unittest
 
 import torch
 
-from olla.torch import fx_optimizer, torch_graph_importer
+from olla import training_graph_optimizer, utils
+from olla.torch import torch_graph_importer
+from olla.torch.fx_optimizer import FXOptimizer
 
 
-class MaxCutTest(unittest.TestCase):
+class FXOptimizerTest(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
 
@@ -78,3 +80,61 @@ class MaxCutTest(unittest.TestCase):
         )
         print(final_result)
         self.assertEqual(initial_result, final_result)
+
+    def testSimpleSchedule(self):
+        class SimpleModule(torch.nn.Module):
+            def forward(self, x):
+                x1 = x.relu()
+                x2 = x.sin()
+                return x1 + x2
+
+        module = SimpleModule()
+        importer = torch_graph_importer.TorchGraphImporter()
+        input_tensor = torch.randn((32, 3, 224, 224))
+        (
+            g,
+            pytorch_node_order,
+            fx_graph,
+            fx_to_df_map,
+        ) = importer.import_via_aotautograd(
+            module,
+            input_tensor,
+            mode="eval",
+            return_node_ordering=True,
+            return_fx_graph=True,
+        )
+        self.assertTrue(g.is_valid())
+        g.canonicalize()
+        g.constrain_weight_updates()
+        g.constrain_tensor_generators()
+        self.assertTrue(g.is_valid())
+
+        fx_graph.recompile()
+        initial_result = fx_graph.forward(
+            (input_tensor,),
+            params=dict(module.named_parameters()),
+            buffers=dict(module.named_buffers()),
+        )
+        # print(f"initial_result: {initial_result}")
+
+        node_order = str([node for node in fx_graph.graph.nodes])
+        # print(f"NODES INITIAL = {node_order}", flush=True)
+
+        s = training_graph_optimizer.Scheduler(g)
+        summary, schedule, mem_loc = s.ComputeOptimalSchedule(
+            allow_swaps=False,
+            max_spills=0,
+        )
+        # print(f"SCHEDULER = {schedule}")
+        node_order_optimized = utils.extract_node_ordering(g, schedule)
+        print(f"node_order_optimized: {node_order_optimized}")
+        fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
+        fx_opt.Reorder(node_order_optimized)
+        fx_graph_opt = fx_opt.fx_trace
+        final_result = fx_graph_opt.forward(
+            (input_tensor,),
+            params=dict(module.named_parameters()),
+            buffers=dict(module.named_buffers()),
+        )
+        # print(f"final_result: {final_result}")
+        self.assertTrue(torch.allclose(initial_result, final_result))
