@@ -180,6 +180,7 @@ class TorchGraphImporter:
         *inputs,
         mode="train",
         optimizer=None,
+        loss_fn=None,
         profile=None,
         warm_up_iters=0,
         profile_iters=1,
@@ -197,7 +198,14 @@ class TorchGraphImporter:
             if mode == "eval":
                 return out
             elif mode == "train":
-                out.sum().backward()
+                if loss_fn:
+                    criterion = loss_fn
+                    target = torch.zeros_like(out)
+                    loss = criterion(out, target)
+                    loss.backward()
+                else:
+                    out.sum().backward()
+
                 if optimizer is True:
                     return [p - p.grad for p in params.values()]
                     # return [p.sub_(1e-4 * p.grad) for p in params.values()]
@@ -358,8 +366,11 @@ class TorchGraphImporter:
                 # print(f"MISSING META INFO FOR NODE {fx_node} with meta {fx_node.meta}")
                 # We remove getitem nodes, so it's ok if we don't have the shape info there
                 for fanout in fx_node.users.keys():
-                    assert fanout.name == "getitem" or fanout.name.startswith(
-                        "getitem_"
+                    assert (
+                        fanout.name == "getitem"
+                        or fanout.name.startswith("getitem_")
+                        or fanout.name == "lift_fresh_copy"
+                        or fanout.name.startswith("lift_fresh_copy_")
                     )
 
             if fx_node not in fx2df_node_map:

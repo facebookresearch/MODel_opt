@@ -276,6 +276,7 @@ class FXOptimizerTest(unittest.TestCase):
         importer = torch_graph_importer.TorchGraphImporter()
         input_tensor = torch.randn((32, 3, 224, 224), requires_grad = True)
         optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+        loss_fn = torch.nn.MSELoss()
         (
             g,
             pytorch_node_order,
@@ -285,6 +286,7 @@ class FXOptimizerTest(unittest.TestCase):
             model,
             input_tensor,
             mode="train",
+            loss_fn=loss_fn,
             optimizer=optimizer,
             return_node_ordering=True,
             return_fx_graph=True,
@@ -336,4 +338,4 @@ class FXOptimizerTest(unittest.TestCase):
         for initial_tensor, final_tensor in zip(initial_result, final_result):
             # print("initial_tensor: \n", initial_tensor)
             # print("final_tensor: \n", final_tensor)
-            self.assertTrue(torch.allclose(initial_tensor, final_tensor, equal_nan=True))
+            self.assertTrue(torch.allclose(initial_tensor, final_tensor, equal_nan=False))
