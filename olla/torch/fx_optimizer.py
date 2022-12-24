@@ -31,6 +31,7 @@ class FXOptimizer:
                     print(
                         f"WARNING: trying to add {fx_node.name} that is already added. Will ignore but need to debug why."
                     )
+                    pass
                 else:
                     # ensure that any nodes that fx_node requires are added first
                     prev_fx_node = addDependentNodes(fx_node, prev_fx_node)

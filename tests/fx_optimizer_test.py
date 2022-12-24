@@ -40,7 +40,7 @@ class FXOptimizerTest(unittest.TestCase):
             params=dict(module.named_parameters()),
             buffers=dict(module.named_buffers()),
         )
-        print(initial_result)
+        # print(initial_result)
 
         node_order = str([node for node in fx_graph.graph.nodes])
         # print(f"NODES INITIAL = {node_order}", flush=True)
@@ -78,7 +78,7 @@ class FXOptimizerTest(unittest.TestCase):
             params=dict(module.named_parameters()),
             buffers=dict(module.named_buffers()),
         )
-        print(final_result)
+        # print(final_result)
         self.assertEqual(initial_result, final_result)
 
     def testSimpleEvalSchedule(self):
@@ -127,7 +127,7 @@ class FXOptimizerTest(unittest.TestCase):
         )
         # print(f"SCHEDULER = {schedule}")
         node_order_optimized = utils.extract_node_ordering(g, schedule)
-        print(f"node_order_optimized: {node_order_optimized}")
+        # print(f"node_order_optimized: {node_order_optimized}")
         fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
         fx_opt.Reorder(node_order_optimized)
         fx_graph_opt = fx_opt.fx_trace
@@ -180,7 +180,7 @@ class FXOptimizerTest(unittest.TestCase):
                 params=dict(module.named_parameters()),
                 buffers=dict(module.named_buffers()),
             )
-        print(fx_graph)
+        # print(fx_graph)
         # print(f"initial_result: {initial_result}")
 
         node_order = str([node for node in fx_graph.graph.nodes])
@@ -193,10 +193,11 @@ class FXOptimizerTest(unittest.TestCase):
         )
         # print(f"SCHEDULER = {schedule}")
         node_order_optimized = utils.extract_node_ordering(g, schedule)
-        print(f"node_order_optimized: {node_order_optimized}")
+        # print(f"node_order_optimized: {node_order_optimized}")
         fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
         fx_opt.Reorder(node_order_optimized)
         fx_graph_opt = fx_opt.fx_trace
+        # print(f"fx_graph_opt: \n{fx_graph_opt}")
         with torch.no_grad():
             final_result = fx_graph_opt.forward(
                 (input_tensor,),
