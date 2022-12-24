@@ -6,7 +6,10 @@ import torch.fx
 from olla import scheduler
 from olla.torch import torch_graph_importer
 
-del os.environ["LD_LIBRARY_PATH"]
+try:
+    del os.environ["LD_LIBRARY_PATH"]
+except:
+    pass
 
 
 class TorchGraphScheduler(unittest.TestCase):

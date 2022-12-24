@@ -19,6 +19,15 @@ conda install gurobi
 pip install pydot
 ```
 
+Other tools to install:
+```
+# MacOS
+brew install graphviz
+
+# Linux
+# TBD
+```
+
 Run benchmarks:
 ```
 python benchmarks.py
