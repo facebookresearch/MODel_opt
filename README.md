@@ -35,20 +35,25 @@ python benchmarks.py
 
 Run tests:
 ```
-python -m unittest tests/dataflow_graph_test.py
-python -m unittest tests/torch_graph_importer_test.py
-python -m unittest tests/torch_graph_importer_test_vision.py
-python -m unittest tests/torch_graph_importer_test_transformers.py
-python -m unittest tests/simulator_test.py
-python -m unittest tests/utils_test.py
-python -m unittest tests/max_cut_test.py
-python -m unittest tests/fx_profiler_test.py
-python -m unittest tests/fx_optimizer_test.py
-python -m unittest tests/torch_scheduler_test.py
+python -m unittest tests/*
+```
+
+Expected Status of each test:
+```
+python -m unittest tests/dataflow_graph_test.py # PASS
+python -m unittest tests/torch_graph_importer_test.py # PASS
+python -m unittest tests/torch_graph_importer_test_vision.py # PASS
+python -m unittest tests/torch_graph_importer_test_transformers.py # PASS
+python -m unittest tests/simulator_test.py # PASS
+python -m unittest tests/utils_test.py # PASS
+python -m unittest tests/max_cut_test.py # PASS
+python -m unittest tests/fx_profiler_test.py # PASS
+python -m unittest tests/fx_optimizer_test.py # PASS
+python -m unittest tests/torch_scheduler_test.py # PASS
 python -m unittest tests/memory_planner_test.py # 1 tests fail
-python -m unittest tests/spill_profiler_test.py
-python -m unittest tests/training_graph_optimizer_test.py
-python -m unittest tests/ilp_solver_test.py
+python -m unittest tests/spill_profiler_test.py # PASS
+python -m unittest tests/training_graph_optimizer_test.py # PASS
+python -m unittest tests/ilp_solver_test.py # PASS
 python -m unittest tests/training_graph_optimizer_large_test.py # 1 test fails
 python -m unittest tests/scheduler_test.py $ 4 out of 8 tests fails
 python -m unittest tests/defragmenter_test.py # 1 out of 4 tests fails
