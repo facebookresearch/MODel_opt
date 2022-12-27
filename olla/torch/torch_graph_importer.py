@@ -439,6 +439,7 @@ class TorchGraphImporter:
             and "allocated_bytes.all.current" in profiler_table.columns
         ):
             # deduce maximum memory fragmentation
+            profiler_table["reserved_bytes.all.current"] = pd.to_numeric(profiler_table["reserved_bytes.all.current"])
             idx = profiler_table["reserved_bytes.all.current"].idxmax()
             row = profiler_table.iloc[idx]
             df_graph.max_mem_fragmentation = (
