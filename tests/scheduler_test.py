@@ -1,4 +1,5 @@
 import unittest
+import os
 
 from olla import scheduler, utils
 from olla.native_graphs import (
@@ -12,9 +13,6 @@ from olla.native_graphs import (
 
 
 class SchedulerTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
     def testNonFragmentation(self):
         g = simple_graph.graph
 
