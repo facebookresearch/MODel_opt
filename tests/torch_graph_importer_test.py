@@ -1054,7 +1054,6 @@ MultiSourceEdge getitem_10:0_opt, size:5440, mem_space:None, tile_id:None group_
         not torch.cuda.is_available(),
         "Memory profiling currently only works with CUDA",
     )
-    @unittest.skipIf(not bool(os.getenv('RUN_SKIPPED', 0)), "Fails with some non-stable fx versions. Enable after fixing a PyTorch/fx version")
     def testImportWithMemoryProfile(self):
         class SimpleModule(torch.nn.Module):
             def __init__(self):
