@@ -1,68 +1,51 @@
 # OLLA
 
-OLLA (Optimizing the Lifetime and Location of Arrays) makes it possible to train larger deep neural networks on existing hardware. OLLA optimizes the order in which the neural network operators are executed to minimize peak memory usage. Furthermore OLLA eliminates memory fragmentation to ensure that no memory is wasted.
+*OLLA* (Optimizing the Lifetime and Location of Arrays) enables training larger deep neural networks on existing hardware. It accomplishes this with a few techniques:
+- *Operator order optimization* — reodering tensor operators to reduce peak memory usage
+- *Fragmentation reduction* — dynamic memory profiling and scheduling to better-utilize memory.
 
-## Approach
-
-Our approach is described in detail on the [OLLA arXiv paper](https://arxiv.org/abs/2210.12924)
+Our approach is described in detail on the [OLLA arXiv paper](https://arxiv.org/abs/2210.12924). See [citing](#citation) below to attribute the work.
 
 ## Getting Started
-
-Install
+The following steps are required to run the optimizer:
 ```
-conda create --name olla python=3.9
-conda activate olla
-conda install pytorch torchvision torchaudio torchtext -c pytorch
-pip install pandas intervaltree networkx graphviz
-conda config --add channels http://conda.anaconda.org/gurobi
-conda install gurobi
-pip install pydot
+pip install networkx graphviz intervaltree pandas pydot
 ```
-
-Other tools to install:
+[Gurobi](https://support.gurobi.com/hc/en-us/articles/360044290292-How-do-I-install-Gurobi-for-Python-) is currently required as the default ILP solver. OLLA has been tested with Gurobi 9.1.1:
 ```
-# MacOS
-brew install graphviz
+conda install gurobi=9.1.1 -c gurobi
+```
+but other Gurobi versions are likely to work.
 
-# Linux
-# TBD
+[Graphviz](https://graphviz.org/download/) can also be useful for visualizing generated Tensor operations graphs.
+
+### Using with PyTorch
+For use with PyTorch, install PyTorch >= 1.12 (`functorch` must be included or installed separately if not present). The following example with CUDA 11.3:
+```
+pip3 install torch torchvision torchaudio torchtext --extra-index-url https://download.pytorch.org/whl/nightly/cu113
 ```
 
+### Benchmarks
+To run benchmarks, `torchtext` is required:
+```
+pip install torchtext
+```
 Run benchmarks:
 ```
 python benchmarks.py
 ```
 
-Run tests:
+### Running Tests
+Run all unit tests with:
 ```
-python -m unittest tests/*
+python -m unittest discover -s tests --pattern "*_test.py"
 ```
 
-Expected Status of each test:
-```
-python -m unittest tests/dataflow_graph_test.py # PASS
-python -m unittest tests/torch_graph_importer_test.py # PASS
-python -m unittest tests/torch_graph_importer_test_vision.py # PASS
-python -m unittest tests/torch_graph_importer_test_transformers.py # PASS
-python -m unittest tests/simulator_test.py # PASS
-python -m unittest tests/utils_test.py # PASS
-python -m unittest tests/max_cut_test.py # PASS
-python -m unittest tests/fx_profiler_test.py # PASS
-python -m unittest tests/fx_optimizer_test.py # PASS
-python -m unittest tests/torch_scheduler_test.py # PASS
-python -m unittest tests/memory_planner_test.py # 1 tests fail
-python -m unittest tests/spill_profiler_test.py # PASS
-python -m unittest tests/training_graph_optimizer_test.py # PASS
-python -m unittest tests/ilp_solver_test.py # PASS
-python -m unittest tests/training_graph_optimizer_large_test.py # 1 test fails
-python -m unittest tests/scheduler_test.py $ 4 out of 8 tests fails
-python -m unittest tests/defragmenter_test.py # 1 out of 4 tests fails
-```
+Run unit tests that are skipped with by setting `RUN_SKIPPED=1` in the environment before the command.
 
 ## Citation
 
-If you use OLLA, please cite us with:
-
+If you use OLLA, please use the below BibTex for citing:
 ```text
 @article{steiner2022olla,
   title={OLLA: Optimizing the Lifetime and Location of Arrays to Reduce the Memory Usage of Neural Networks},
