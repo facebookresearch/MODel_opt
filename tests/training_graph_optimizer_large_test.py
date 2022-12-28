@@ -1,4 +1,5 @@
 import unittest
+import os
 
 from olla import training_graph_optimizer, utils
 from olla.native_graphs import graph_with_gradients
@@ -8,6 +9,7 @@ class SchedulerTest(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
 
+    @unittest.skipIf(not bool(os.getenv('RUN_SKIPPED', 0)), "Temporarily disabled; TODO: @melhoushi")
     def testGraphWithGradients(self):
         g = graph_with_gradients.graph
 
