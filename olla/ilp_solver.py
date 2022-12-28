@@ -2,6 +2,7 @@ import sys
 import logging
 from typing import Any, Callable, Dict, List, Optional, Union
 from dataclasses import dataclass
+from olla.gurobi_utils import get_gurobi_env
 
 import gurobipy as gr
 
@@ -31,7 +32,7 @@ class ILPSolver:
         self.extra_params = extra_params
         self.num_constraints = 0
         if solver == "GUROBI" or solver == "gurobi":
-            self.model = gr.Model("gurobi")
+            self.model = gr.Model("gurobi", env=get_gurobi_env())
         else:
             raise Exception("Currently only Gurobi solver is supported.")
         self._message_callback = None
