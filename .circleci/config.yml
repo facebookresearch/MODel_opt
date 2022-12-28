@@ -1,0 +1,42 @@
+version: 2.1
+
+gpu: &gpu
+  machine:
+    image: ubuntu-2004-cuda-11.4:202110-01
+  resource_class: gpu.nvidia.large
+
+commands:
+  initialize_environment:
+    parameters:
+      python_version:
+        type: string
+        default: "3.8"
+    steps:
+      - run:
+          name: ""
+          command: |
+            sudo apt -y update && \
+            sudo apt -y install build-essential python3-dev python3-pip python3-venv cmake
+      - run:
+          name: "Install Conda"
+          command: |
+            echo "hello"
+
+  install_dependencies:
+    steps:
+      - run:
+          name: "Install deps"
+          command: |
+            echo "Hello"
+
+jobs:
+  ubuntu_python_3_8_cuda_11_4:
+    <<: *gpu
+    steps:
+      - initialize_environment
+
+workflows:
+  build-test:
+    jobs:
+      - ubuntu_python_3_8_cuda_11_4:
+          name: "Ubuntu | Python 3.8 | CUDA 11.4"
