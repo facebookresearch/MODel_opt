@@ -15,9 +15,9 @@ commands:
       - run:
           name: "Set up pyenv"
           command: |
-            echo 'export PYENV_ROOT="$HOME/.pyenv"' >> $BASH_ENV
-            echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> $BASH_ENV
-            echo 'eval "$(pyenv init -)"' >> $BASH_ENV
+            # echo 'export PYENV_ROOT="$HOME/.pyenv"' >> $BASH_ENV
+            # echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> $BASH_ENV
+            # echo 'eval "$(pyenv init -)"' >> $BASH_ENV
       - run:
           name: "Set up pyenv virtualenv"
           command: |
