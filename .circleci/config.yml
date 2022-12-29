@@ -21,8 +21,8 @@ commands:
       - run:
           name: "Set up pyenv virtualenv"
           command: |
-            git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
-            echo 'eval "$(pyenv virtualenv-init -)"' >> $BASH_ENV
+            # git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
+            # echo 'eval "$(pyenv virtualenv-init -)"' >> $BASH_ENV
       - run:
           name: "Create Virtual environment"
           command: |
