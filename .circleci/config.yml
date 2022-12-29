@@ -13,10 +13,21 @@ commands:
         default: "3.8"
     steps:
       - run:
-          name: ""
+          name: "Set up pyenv"
           command: |
-            sudo apt -y update && \
-            sudo apt -y install build-essential python3-dev python3-pip python3-venv cmake
+            echo 'export PYENV_ROOT="$HOME/.pyenv"' >> $BASH_ENV
+            echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> $BASH_ENV
+            echo 'eval "$(pyenv init -)"' >> $BASH_ENV
+      - run:
+          name: "Set up pyenv virtualenv"
+          command: |
+            git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
+            echo 'eval "$(pyenv virtualenv-init -)"' >> $BASH_ENV
+      - run:
+          name: "Create Virtual environment"
+          command: |
+            pyenv install 3.8.6
+            pyenv global 3.8.6
       - run:
           name: "Install Conda"
           command: |
