@@ -1,0 +1,81 @@
+version: 2.1
+
+gpu: &gpu
+  machine:
+    image: ubuntu-2004-cuda-11.4:202110-01
+  resource_class: gpu.nvidia.large
+
+commands:
+  install_system_dependencies:
+    steps:
+      - run:
+          name: "Update apt"
+          command: sudo apt update
+      - run:
+          name: "Install Graphviz/Dot"
+          command: sudo apt install graphviz
+
+  setup_python:
+    parameters:
+      python_version:
+        type: string
+        default: "3.8"
+    steps:
+      - run:
+          name: "Install and set Python 3.8.6"
+          command: |
+            pyenv install 3.8.6
+            pyenv global 3.8.6
+      - run:
+          name: "Create Virtual environment"
+          command: |
+            pip install virtualenv
+            python -m venv ~/venv
+            echo "source ~/venv/bin/activate" >> $BASH_ENV
+
+  install_python_dependencies:
+    steps:
+      - run:
+          name: "Install General Python dependencies"
+          command: |
+            pip install networkx graphviz intervaltree pandas pydot
+
+  install_torch_1_13_1_cuda_11_3:
+    steps:
+      - run:
+          name: "Install PyTorch 1.13.1 - CUDA 11.3"
+          command: |
+            pip install torch torchvision torchaudio torchtext \
+              --extra-index-url https://download.pytorch.org/whl/nightly/cu113
+
+  install_gurobi_9_1_1:
+    steps:
+      - run:
+          name: "Install Gurobi Python 9.1.1"
+          command: |
+            pip install gurobipy==9.1.1
+
+  run_tests_gurobi:
+    steps:
+      - run:
+          name: "Run tests with optimizer=Gurobi"
+          command: |
+            python -m unittest discover -s tests --pattern "*_test.py"
+
+jobs:
+  ubuntu_python_3_8_6_torch_cuda_11_3:
+    <<: *gpu
+    steps:
+      - install_system_dependencies
+      - setup_python
+      - install_python_dependencies
+      - install_torch_1_13_1_cuda_11_3
+      - install_gurobi_9_1_1
+      - checkout
+      - run_tests_gurobi
+
+workflows:
+  build-test:
+    jobs:
+      - ubuntu_python_3_8_6_torch_cuda_11_3:
+          name: "Ubuntu | Python 3.8.6 | CUDA 11.3 | Gurobi"
