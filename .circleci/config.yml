@@ -42,7 +42,7 @@ commands:
       - run:
           name: "Run tests with optimizer=Gurobi"
           command: |
-            python -m unittest discover -s tests --pattern "*_test.py"
+            OLLA_GUROBI_ISV_APP_NAME=$OLLA_GUROBI_ISV_APP_NAME OLLA_GUROBI_ISV_CODE=$OLLA_GUROBI_ISV_CODE OLLA_GUROBI_ISV_EXPIRATION=$OLLA_GUROBI_ISV_EXPIRATION OLLA_GUROBI_ISV_NAME=$OLLA_GUROBI_ISV_NAME python -m unittest discover -s tests --pattern "*_test.py"
           # environment:
           #   OLLA_GUROBI_ISV_APP_NAME: $OLLA_GUROBI_ISV_APP_NAME
           #   OLLA_GUROBI_ISV_CODE: $OLLA_GUROBI_ISV_CODE
