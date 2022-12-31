@@ -22,7 +22,7 @@ but other Gurobi versions are likely to work.
 ### Using with PyTorch
 For use with PyTorch, install PyTorch >= 1.12 (`functorch` must be included or installed separately if not present). The following example with CUDA 11.3:
 ```
-pip3 install torch torchvision torchaudio torchtext --extra-index-url https://download.pytorch.org/whl/nightly/cu113
+pip install torch torchvision torchaudio torchtext --extra-index-url https://download.pytorch.org/whl/nightly/cu113
 ```
 
 ### Benchmarks

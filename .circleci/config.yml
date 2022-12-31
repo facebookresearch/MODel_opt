@@ -6,31 +6,25 @@ gpu: &gpu
   resource_class: gpu.nvidia.large
 
 commands:
-  initialize_environment:
+  setup_python:
     parameters:
       python_version:
         type: string
         default: "3.8"
     steps:
-      # - run:
-      #     name: "Set up pyenv"
-      #     command: |
-      #       # echo 'export PYENV_ROOT="$HOME/.pyenv"' >> $BASH_ENV
-      #       # echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> $BASH_ENV
-      #       # echo 'eval "$(pyenv init -)"' >> $BASH_ENV
-      # - run:
-      #     name: "Set up pyenv virtualenv"
-      #     command: |
-      #       # git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
-      #       # echo 'eval "$(pyenv virtualenv-init -)"' >> $BASH_ENV
       - run:
-          name: "Create Virtual environment"
+          name: "Install and set Python 3.8.6"
           command: |
             pyenv install 3.8.6
             pyenv global 3.8.6
+      - run:
+          name: "Create Virtual environment"
+          command: |
             pip install virtualenv
             python -m venv ~/venv
             echo "source ~/venv/bin/activate" >> $BASH_ENV
+  install_python_dependencies:
+    steps:
       - run:
           name: "Install Python dependencies"
           command: |
@@ -39,19 +33,31 @@ commands:
           name: "Install PyTorch 1.13.1 - CUDA 11.3"
           command: |
             pip install torch torchvision torchaudio torchtext --extra-index-url https://download.pytorch.org/whl/nightly/cu113
-
-  install_dependencies:
+      - run:
+          name: "Install Gurobi Python 9.1.1"
+          command: |
+            pip install gurobipy==9.1.1
+  run_tests_gurobi:
     steps:
       - run:
-          name: "Install deps"
+          name: "Run tests with optimizer=Gurobi"
           command: |
-            echo "Hello"
+            python -m unittest discover -s tests --pattern "*_test.py"
+          environment:
+            OLLA_GUROBI_ISV_APP_NAME: $OLLA_GUROBI_ISV_APP_NAME
+            OLLA_GUROBI_ISV_CODE: $OLLA_GUROBI_ISV_CODE
+            OLLA_GUROBI_ISV_EXPIRATION: $OLLA_GUROBI_ISV_EXPIRATION
+            OLLA_GUROBI_ISV_NAME: $OLLA_GUROBI_ISV_NAME
+
 
 jobs:
   ubuntu_python_3_8_cuda_11_4:
     <<: *gpu
     steps:
-      - initialize_environment
+      - setup_python
+      - install_python_dependencies
+      - checkout
+      - run_tests_gurobi
 
 workflows:
   build-test:
