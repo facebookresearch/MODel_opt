@@ -43,15 +43,14 @@ commands:
           name: "Run tests with optimizer=Gurobi"
           command: |
             python -m unittest discover -s tests --pattern "*_test.py"
-          environment:
-            OLLA_GUROBI_ISV_APP_NAME: $OLLA_GUROBI_ISV_APP_NAME
-            OLLA_GUROBI_ISV_CODE: $OLLA_GUROBI_ISV_CODE
-            OLLA_GUROBI_ISV_EXPIRATION: $OLLA_GUROBI_ISV_EXPIRATION
-            OLLA_GUROBI_ISV_NAME: $OLLA_GUROBI_ISV_NAME
-
+          # environment:
+          #   OLLA_GUROBI_ISV_APP_NAME: $OLLA_GUROBI_ISV_APP_NAME
+          #   OLLA_GUROBI_ISV_CODE: $OLLA_GUROBI_ISV_CODE
+          #   OLLA_GUROBI_ISV_EXPIRATION: $OLLA_GUROBI_ISV_EXPIRATION
+          #   OLLA_GUROBI_ISV_NAME: $OLLA_GUROBI_ISV_NAME
 
 jobs:
-  ubuntu_python_3_8_cuda_11_4:
+  ubuntu_python_3_8_6_cuda_11_4:
     <<: *gpu
     steps:
       - setup_python
@@ -62,5 +61,5 @@ jobs:
 workflows:
   build-test:
     jobs:
-      - ubuntu_python_3_8_cuda_11_4:
-          name: "Ubuntu | Python 3.8 | CUDA 11.4"
+      - ubuntu_python_3_8_6_cuda_11_4:
+          name: "Ubuntu | Python 3.8.6 | CUDA 11.3 | Gurobi"
