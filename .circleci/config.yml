@@ -23,15 +23,22 @@ commands:
       #     command: |
       #       # git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
       #       # echo 'eval "$(pyenv virtualenv-init -)"' >> $BASH_ENV
-      # - run:
-      #     name: "Create Virtual environment"
-      #     command: |
-      #       pyenv install 3.8.6
-      #       pyenv global 3.8.6
       - run:
-          name: "Install Conda"
+          name: "Create Virtual environment"
           command: |
-            echo "hello"
+            pyenv install 3.8.6
+            pyenv global 3.8.6
+            pip install virtualenv
+            python -m venv ~/venv
+            echo "source ~/venv/bin/activate" >> $BASH_ENV
+      - run:
+          name: "Install Python dependencies"
+          command: |
+            pip install networkx graphviz intervaltree pandas pydot
+      - run:
+          name: "Install PyTorch 1.13.1 - CUDA 11.3"
+          command: |
+            pip install torch torchvision torchaudio torchtext --extra-index-url https://download.pytorch.org/whl/nightly/cu113
 
   install_dependencies:
     steps:
