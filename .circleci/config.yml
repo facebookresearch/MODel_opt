@@ -23,6 +23,7 @@ commands:
             pip install virtualenv
             python -m venv ~/venv
             echo "source ~/venv/bin/activate" >> $BASH_ENV
+
   install_python_dependencies:
     steps:
       - run:
@@ -33,21 +34,18 @@ commands:
           name: "Install PyTorch 1.13.1 - CUDA 11.3"
           command: |
             pip install torch torchvision torchaudio torchtext --extra-index-url https://download.pytorch.org/whl/nightly/cu113
+      # TODO: parameterize this command by the choice of optimizer
       - run:
           name: "Install Gurobi Python 9.1.1"
           command: |
             pip install gurobipy==9.1.1
+
   run_tests_gurobi:
     steps:
       - run:
           name: "Run tests with optimizer=Gurobi"
           command: |
-            OLLA_GUROBI_ISV_APP_NAME=$OLLA_GUROBI_ISV_APP_NAME OLLA_GUROBI_ISV_CODE=$OLLA_GUROBI_ISV_CODE OLLA_GUROBI_ISV_EXPIRATION=$OLLA_GUROBI_ISV_EXPIRATION OLLA_GUROBI_ISV_NAME=$OLLA_GUROBI_ISV_NAME python -m unittest discover -s tests --pattern "*_test.py"
-          # environment:
-          #   OLLA_GUROBI_ISV_APP_NAME: $OLLA_GUROBI_ISV_APP_NAME
-          #   OLLA_GUROBI_ISV_CODE: $OLLA_GUROBI_ISV_CODE
-          #   OLLA_GUROBI_ISV_EXPIRATION: $OLLA_GUROBI_ISV_EXPIRATION
-          #   OLLA_GUROBI_ISV_NAME: $OLLA_GUROBI_ISV_NAME
+            python -m unittest discover -s tests --pattern "*_test.py"
 
 jobs:
   ubuntu_python_3_8_6_cuda_11_4:
