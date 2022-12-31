@@ -1,5 +1,7 @@
 # OLLA
 
+![CircleCI](https://img.shields.io/circleci/build/github/facebookresearch/OLLA?label=CircleCI)
+
 *OLLA* (Optimizing the Lifetime and Location of Arrays) enables training larger deep neural networks on existing hardware. It accomplishes this with a few techniques:
 - *Operator order optimization* — reodering tensor operators to reduce peak memory usage
 - *Fragmentation reduction* — dynamic memory profiling and scheduling to better-utilize memory.
