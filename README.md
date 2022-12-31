@@ -17,7 +17,7 @@ conda install gurobi=9.1.1 -c gurobi
 ```
 but other Gurobi versions are likely to work.
 
-[Graphviz](https://graphviz.org/download/) can also be useful for visualizing generated Tensor operations graphs.
+[Graphviz](https://graphviz.org/download/) may also be required for generating/outputting some traced Tensor operation graphs.
 
 ### Using with PyTorch
 For use with PyTorch, install PyTorch >= 1.12 (`functorch` must be included or installed separately if not present). The following example with CUDA 11.3:

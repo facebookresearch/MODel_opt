@@ -6,6 +6,15 @@ gpu: &gpu
   resource_class: gpu.nvidia.large
 
 commands:
+  install_system_dependencies:
+    steps:
+      - run:
+          name: "Update apt"
+          command: sudo apt update
+      - run:
+          name: "Install Graphviz/Dot"
+          command: sudo apt install graphviz
+
   setup_python:
     parameters:
       python_version:
@@ -27,14 +36,20 @@ commands:
   install_python_dependencies:
     steps:
       - run:
-          name: "Install Python dependencies"
+          name: "Install General Python dependencies"
           command: |
             pip install networkx graphviz intervaltree pandas pydot
+
+  install_torch_1_13_1_cuda_11_3:
+    steps:
       - run:
           name: "Install PyTorch 1.13.1 - CUDA 11.3"
           command: |
-            pip install torch torchvision torchaudio torchtext --extra-index-url https://download.pytorch.org/whl/nightly/cu113
-      # TODO: parameterize this command by the choice of optimizer
+            pip install torch torchvision torchaudio torchtext \
+              --extra-index-url https://download.pytorch.org/whl/nightly/cu113
+
+  install_gurobi_9_1_1:
+    steps:
       - run:
           name: "Install Gurobi Python 9.1.1"
           command: |
@@ -48,16 +63,19 @@ commands:
             python -m unittest discover -s tests --pattern "*_test.py"
 
 jobs:
-  ubuntu_python_3_8_6_cuda_11_4:
+  ubuntu_python_3_8_6_torch_cuda_11_3:
     <<: *gpu
     steps:
+      - install_system_dependencies
       - setup_python
       - install_python_dependencies
+      - install_torch_1_13_1_cuda_11_3
+      - install_gurobi_9_1_1
       - checkout
       - run_tests_gurobi
 
 workflows:
   build-test:
     jobs:
-      - ubuntu_python_3_8_6_cuda_11_4:
+      - ubuntu_python_3_8_6_torch_cuda_11_3:
           name: "Ubuntu | Python 3.8.6 | CUDA 11.3 | Gurobi"
