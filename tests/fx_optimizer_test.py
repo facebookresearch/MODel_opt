@@ -339,3 +339,72 @@ class FXOptimizerTest(unittest.TestCase):
             # print("initial_tensor: \n", initial_tensor)
             # print("final_tensor: \n", final_tensor)
             self.assertTrue(torch.allclose(initial_tensor, final_tensor, equal_nan=False))
+
+    def testVGG11BNNetEvalSchedule(self):
+        model = torchvision.models.vgg11_bn()
+        importer = torch_graph_importer.TorchGraphImporter()
+        input_tensor = torch.randn((32, 3, 224, 224), requires_grad = True)
+        optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+        loss_fn = torch.nn.MSELoss()
+        (
+            g,
+            pytorch_node_order,
+            fx_graph,
+            fx_to_df_map,
+        ) = importer.import_via_aotautograd(
+            model,
+            input_tensor,
+            mode="eval",
+            loss_fn=loss_fn,
+            optimizer=optimizer,
+            return_node_ordering=True,
+            return_fx_graph=True,
+        )
+        # print(f"fx_graph: \n{fx_graph}")
+        self.assertTrue(g.is_valid())
+        g.canonicalize()
+        g.constrain_weight_updates()
+        g.constrain_tensor_generators()
+        self.assertTrue(g.is_valid())
+
+        fx_graph.recompile()
+        with torch.no_grad():
+            torch.manual_seed(0)
+            initial_result = fx_graph.forward(
+                (input_tensor,),
+                params=dict(model.named_parameters()),
+                buffers=dict(model.named_buffers()),
+            )
+        # print(f"initial_result: {initial_result}")
+
+        node_order = str([node for node in fx_graph.graph.nodes])
+        # print(f"NODES INITIAL = {node_order}", flush=True)
+
+        s = training_graph_optimizer.Scheduler(g, rel_stop=0.005, timeout_s=1800)
+        summary, schedule, mem_loc = s.ComputeOptimalSchedule(
+            allow_swaps=False,
+            max_spills=0,
+        )
+        # print(f"SCHEDULER = {schedule}")
+        assert utils.validate_timeline(schedule)
+        assert utils.validate_node_ordering(g, schedule)
+        # TODO: call Benchmarks.run_node_ordering() to reduce redundancy?
+
+        node_order_optimized = utils.extract_node_ordering(g, schedule)
+        # print(f"node_order_optimized: {node_order_optimized}")
+        fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
+        fx_opt.Reorder(node_order_optimized)
+        fx_graph_opt = fx_opt.fx_trace
+        # print(f"fx_graph_opt: \n{fx_graph_opt}")
+        with torch.no_grad():
+            torch.manual_seed(0)
+            final_result = fx_graph_opt.forward(
+                (input_tensor,),
+                params=dict(model.named_parameters()),
+                buffers=dict(model.named_buffers()),
+            )
+        # print(f"final_result: {final_result}")
+        for initial_tensor, final_tensor in zip(initial_result, final_result):
+            # print("initial_tensor: \n", initial_tensor)
+            # print("final_tensor: \n", final_tensor)
+            self.assertTrue(torch.allclose(initial_tensor, final_tensor, equal_nan=False))

@@ -43,7 +43,7 @@ class FXOptimizer:
             prev_fx_node = prev_fx_node.next
             return prev_fx_node
 
-        # add params and args nodes first to ensure they have the same shapes as original graph
+        # add params, args, and buffer nodes first to ensure they have the same shapes as original graph
         args_id = 1
         while True:
             args_name = f"args_{args_id}"
@@ -63,6 +63,18 @@ class FXOptimizer:
                 params_id += 1
             else:
                 break
+
+        buffers_id = 1
+        while True:
+            buffers_name = f"buffers_{buffers_id}"
+            buffers_fx_node = find_fx_node(self.fx_trace.graph, buffers_name)
+            if buffers_fx_node:
+                prev_fx_node = addNode(buffers_fx_node, prev_fx_node)
+                buffers_id += 1
+            else:
+                break
+
+        # TODO: create a map between df edges to fx nodes? or df input to ops to fx nodes?
 
         # add other nodes in order of schedule
         for df_node, _ in node_order.items():
