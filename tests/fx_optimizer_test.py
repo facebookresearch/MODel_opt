@@ -176,6 +176,11 @@ class FXOptimizerTest(unittest.TestCase):
            def forward(self, e4, e5):
                 e6 = torch.cat([e5, e4[0:e4.numel()//6]])
                 return e6
+    
+        # custom tracer to treat V1, V2, V3, and V4 as ops and avoid tracing through them
+        class CustomTracer(torch.fx.Tracer):
+            def is_leaf_module(self, m: torch.nn.Module, module_qualified_name: str) -> bool:
+                return isinstance(m, V1) or isinstance(m, V2) or isinstance(m, V3) or isinstance(m, V4) 
 
         module = SimpleModule()
         importer = torch_graph_importer.TorchGraphImporter()
@@ -185,10 +190,11 @@ class FXOptimizerTest(unittest.TestCase):
             pytorch_node_order,
             fx_graph,
             fx_to_df_map,
-        ) = importer.import_via_aotautograd(
+        ) = importer.import_via_fx(
             module,
             input_tensor,
             mode="eval",
+            tracer_class=CustomTracer,
             return_node_ordering=True,
             return_fx_graph=True,
         )
@@ -198,11 +204,11 @@ class FXOptimizerTest(unittest.TestCase):
         g.constrain_tensor_generators()
         self.assertTrue(g.is_valid())
 
+        initial_result = module(input_tensor)
+
         fx_graph.recompile()
         initial_result = fx_graph.forward(
-            (input_tensor,),
-            params=dict(module.named_parameters()),
-            buffers=dict(module.named_buffers()),
+            input_tensor,
         )
         print(fx_graph)
         # print(f"initial_result: {initial_result}")
@@ -223,9 +229,7 @@ class FXOptimizerTest(unittest.TestCase):
         fx_graph_opt = fx_opt.fx_trace
         print(fx_graph_opt)
         final_result = fx_graph_opt.forward(
-            (input_tensor,),
-            params=dict(module.named_parameters()),
-            buffers=dict(module.named_buffers()),
+            input_tensor,
         )
         # print(f"final_result: {final_result}")
         self.assertTrue(torch.allclose(initial_result, final_result))
