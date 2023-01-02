@@ -105,6 +105,8 @@ class TorchGraphImporter:
         warm_up_iters=0,
         profile_iters=1,
         return_node_ordering=False,
+        return_fx_graph=False,
+        verbose=True,
     ):
         self.assert_type(mode)
         assert mode == "eval", "Currently `import_via_fx` only supports eval mode"
@@ -120,6 +122,8 @@ class TorchGraphImporter:
             warm_up_iters=warm_up_iters,
             profile_iters=profile_iters,
             return_node_ordering=return_node_ordering,
+            return_fx_graph=return_fx_graph,
+            verbose=verbose,
         )
 
     def import_via_functorch(
@@ -131,6 +135,8 @@ class TorchGraphImporter:
         warm_up_iters=0,
         profile_iters=1,
         return_node_ordering=False,
+        return_fx_graph=False,
+        verbose=True,
     ):
         self.assert_type(mode)
         # obtain the forward and backward graphs of the model
@@ -166,6 +172,8 @@ class TorchGraphImporter:
                 warm_up_iters=warm_up_iters,
                 profile_iters=profile_iters,
                 return_node_ordering=return_node_ordering,
+                return_fx_graph=return_fx_graph,
+                verbose=verbose,
             )
         elif mode == "eval":
             fx_trace = fx_trace_fwd
@@ -176,6 +184,8 @@ class TorchGraphImporter:
                 warm_up_iters=warm_up_iters,
                 profile_iters=profile_iters,
                 return_node_ordering=return_node_ordering,
+                return_fx_graph=return_fx_graph,
+                verbose=verbose,
             )
         else:
             raise ValueError("unsupported import mode `", mode, "`")
