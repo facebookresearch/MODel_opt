@@ -195,6 +195,7 @@ class FXOptimizerTest(unittest.TestCase):
             input_tensor,
             mode="eval",
             tracer_class=CustomTracer,
+            cleanup=True,
             return_node_ordering=True,
             return_fx_graph=True,
         )
