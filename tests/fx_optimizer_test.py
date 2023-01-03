@@ -4,6 +4,7 @@ import torch
 import torchvision
 
 from olla import training_graph_optimizer, utils
+from olla import simulator
 from olla.torch import torch_graph_importer
 from olla.torch.fx_optimizer import FXOptimizer
 
@@ -151,8 +152,8 @@ class FXOptimizerTest(unittest.TestCase):
 
             def forward(self, e1):
                 e3, e2 = self.v1(e1)
-                e5 = self.v2(e3)
                 e4 = self.v3(e2)
+                e5 = self.v2(e3)
                 e6 = self.v4(e4, e5)
                 return e6
         
@@ -217,6 +218,13 @@ class FXOptimizerTest(unittest.TestCase):
         node_order = str([node for node in fx_graph.graph.nodes])
         # print(f"NODES INITIAL = {node_order}", flush=True)
 
+        g.dump("/tmp/graph.dot")
+        s = simulator.Simulator(g)
+        print("pytorch_node_order: ", pytorch_node_order)
+        simulated_peak_mem_usage, mem_per_timestep = s.Simulate(pytorch_node_order)
+        print("simulated_peak_mem_usage: ", simulated_peak_mem_usage)
+        print("mem_per_timestep: ", mem_per_timestep)
+
         s = training_graph_optimizer.Scheduler(g)
         summary, schedule, mem_loc = s.ComputeOptimalSchedule(
             allow_swaps=False,
@@ -224,7 +232,9 @@ class FXOptimizerTest(unittest.TestCase):
         )
         # print(f"SCHEDULER = {schedule}")
         node_order_optimized = utils.extract_node_ordering(g, schedule)
-        # print(f"node_order_optimized: {node_order_optimized}")
+        assert(utils.validate_node_ordering(g, schedule))
+        print(f"node_order_optimized: {node_order_optimized}")
+
         fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
         fx_opt.Reorder(node_order_optimized)
         fx_graph_opt = fx_opt.fx_trace
