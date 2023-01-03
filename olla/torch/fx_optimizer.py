@@ -12,6 +12,9 @@ class FXOptimizer:
             self.df_to_fx_map[df_node] = fx_node
 
     def Reorder(self, node_order):
+        # node_order is a dictionary in the format: "node_name: order"
+        # So let's sort it first by order
+        node_order = {node_name: order for node_name, order in sorted(node_order.items(), key=lambda item: item[1])}
         added_fx_nodes: Set[torch.fx.Node] = set()
         prev_fx_node: torch.fx.Node = self.fx_trace.graph._root
 
