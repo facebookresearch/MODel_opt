@@ -101,6 +101,7 @@ class TorchGraphImporter:
         *inputs,
         mode="eval",
         tracer_class=DeepTracer,
+        cleanup=False,
         profile=None,
         warm_up_iters=0,
         profile_iters=1,
@@ -118,6 +119,8 @@ class TorchGraphImporter:
         return self.import_from_fx(
             fx_trace,
             *inputs,
+            cleanup=cleanup,
+            treat_output_as_fake=False,
             profile=profile,
             warm_up_iters=warm_up_iters,
             profile_iters=profile_iters,
@@ -131,6 +134,7 @@ class TorchGraphImporter:
         model,
         *inputs,
         mode="train",
+        cleanup=False,
         profile=None,
         warm_up_iters=0,
         profile_iters=1,
@@ -168,6 +172,7 @@ class TorchGraphImporter:
                 fx_trace,
                 *inputs,
                 *outputs,
+                cleanup=cleanup,
                 profile=profile,
                 warm_up_iters=warm_up_iters,
                 profile_iters=profile_iters,
@@ -180,6 +185,7 @@ class TorchGraphImporter:
             return self.import_from_fx(
                 fx_trace,
                 *inputs,
+                treat_output_as_fake=True,
                 profile=profile,
                 warm_up_iters=warm_up_iters,
                 profile_iters=profile_iters,
@@ -197,6 +203,7 @@ class TorchGraphImporter:
         mode="train",
         optimizer=None,
         loss_fn=None,
+        cleanup=True,
         profile=None,
         model_return_output=False,
         warm_up_iters=0,
@@ -251,8 +258,9 @@ class TorchGraphImporter:
             *inputs,
             *dict(model.named_parameters()).values(),
             *dict(model.named_buffers()).values(),
-            cleanup=True,
+            cleanup=cleanup,
             shape_inference=False,
+            treat_output_as_fake=True,
             profile=profile,
             warm_up_iters=warm_up_iters,
             profile_iters=profile_iters,
@@ -266,6 +274,7 @@ class TorchGraphImporter:
         model,
         *inputs,
         mode="eval",
+        cleanup=False,
         profile=None,
         warm_up_iters=0,
         profile_iters=1,
@@ -281,7 +290,9 @@ class TorchGraphImporter:
         return self.import_from_fx(
             self.fx_trace,
             *inputs,
+            cleanup=cleanup,
             shape_inference=False,
+            treat_output_as_fake=False,
             profile=profile,
             warm_up_iters=warm_up_iters,
             profile_iters=profile_iters,
@@ -295,6 +306,7 @@ class TorchGraphImporter:
         *inputs,
         cleanup=False,
         shape_inference=True,
+        treat_output_as_fake=False,
         profile=None,
         warm_up_iters=0,
         profile_iters=1,
@@ -342,7 +354,9 @@ class TorchGraphImporter:
                 or fx_node.name.startswith("buffers_")
                 else fx_node.op
             )
-            if op_type != "output":
+            if treat_output_as_fake and op_type == "output":
+                pass
+            else:
                 df_node = df_graph.add_node(fx_node.name, op_type)
                 fx2df_node_map[fx_node] = df_node
 
