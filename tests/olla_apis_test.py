@@ -5,7 +5,7 @@ import unittest
 import olla
 
 class OLLAAPIsTest(unittest.TestCase):
-    def testSimpleEval(self):
+    def testTrivialEval(self):
         class SimpleModule(torch.nn.Module):
             def __init__(self):
                 super().__init__()
@@ -27,7 +27,7 @@ class OLLAAPIsTest(unittest.TestCase):
         # since this is inference mode, everytime we run the model with same input, we should get same output
         assert(torch.allclose(y, y2))
 
-    def testSimpleTrain(self):
+    def testTrivialTrain(self):
         class SimpleModule(torch.nn.Module):
             def __init__(self):
                 super().__init__()
@@ -50,6 +50,29 @@ class OLLAAPIsTest(unittest.TestCase):
         y2 = model_opt(input)
         # everytime we run the model, the weights get updated, so we expect the output to be different
         assert(not torch.allclose(y, y2))
+
+    def testSimpleEval(self):
+        class SimpleModule(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.linear1 = torch.nn.Linear(4, 5)
+                self.linear2 = torch.nn.Linear(4, 5)
+
+            def forward(self, x):
+                return self.linear1(x) + self.linear2(x)
+
+        model = SimpleModule()
+        input = torch.randn((3, 4), requires_grad=False)
+
+        model_opt = olla.optimize(model, input)
+
+        y_orig = model(input)
+        y = model_opt(input)
+        assert(torch.allclose(y, y_orig))
+
+        y2 = model_opt(input)
+        # since this is inference mode, everytime we run the model with same input, we should get same output
+        assert(torch.allclose(y, y2))
 
     def testAlexNetTrain(self):
         model = torchvision.models.alexnet()
