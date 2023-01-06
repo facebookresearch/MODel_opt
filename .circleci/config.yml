@@ -58,9 +58,9 @@ jobs:
   ubuntu_python_3_8_6_torch_cuda_11_3:
     <<: *gpu
     steps:
+      - checkout
       - install_system_dependencies
       - setup_python
-      - checkout
       - install_gurobi_9_1_1
       - install_python_dependencies
       - run_tests_gurobi
