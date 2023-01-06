@@ -194,6 +194,8 @@ class TorchGraphImporter:
             if not isinstance(args, Iterable):
                 args = [args]
             params_and_buffers = {**params, **buffers}
+            if optimizer is not None and is instance(optimizer, torch.optim.Optimizer):
+                optimizer.zero_grad()
             out = stateless.functional_call(model, params_and_buffers, args)
             if mode == "eval":
                 return out
