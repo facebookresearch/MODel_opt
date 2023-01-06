@@ -83,5 +83,5 @@ workflows:
     jobs:
       - ubuntu_python_3_8_6_torch_cuda_11_3:
           name: "Ubuntu | Python 3.8.6 | CUDA 11.3 | Gurobi"
-      - ubuntu_python_3_8_6_torch_cuda_11_3:
+      - ubuntu_python_3_8_6_torch_cuda_11_3_install:
           name: "Ubuntu | Python 3.8.6 | CUDA 11.3 | Gurobi | Installation Test"
