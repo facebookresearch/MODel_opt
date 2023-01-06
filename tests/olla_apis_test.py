@@ -17,6 +17,7 @@ class OLLAAPIsTest(unittest.TestCase):
         model = SimpleModule()
         input = torch.randn((1), requires_grad=False)
 
+        model.eval()
         model_opt = olla.optimize(model, input)
 
         y_orig = model(input)
@@ -41,6 +42,7 @@ class OLLAAPIsTest(unittest.TestCase):
         optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
         loss_fn = torch.nn.MSELoss()
 
+        model.train()
         model_opt = olla.optimize(model, input, optimizer=optimizer, loss_fn=loss_fn)
 
         y_orig = model(input)
@@ -64,6 +66,7 @@ class OLLAAPIsTest(unittest.TestCase):
         model = SimpleModule()
         input = torch.randn((3, 4), requires_grad=False)
 
+        model.eval()
         model_opt = olla.optimize(model, input)
 
         y_orig = model(input)
@@ -89,6 +92,7 @@ class OLLAAPIsTest(unittest.TestCase):
         optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
         loss_fn = torch.nn.MSELoss()
 
+        model.train()
         model_opt = olla.optimize(model, input, optimizer=optimizer, loss_fn=loss_fn)
 
         y_orig = model(input)
@@ -122,6 +126,7 @@ class OLLAAPIsTest(unittest.TestCase):
         optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
         loss_fn = torch.nn.MSELoss()
 
+        model.train()
         model_opt = olla.optimize(model, input, optimizer=optimizer, loss_fn=loss_fn)
 
         y_orig = model(input)
