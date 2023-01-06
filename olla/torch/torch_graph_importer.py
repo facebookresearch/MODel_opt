@@ -182,6 +182,7 @@ class TorchGraphImporter:
         optimizer=None,
         loss_fn=None,
         profile=None,
+        model_return_output=False,
         warm_up_iters=0,
         profile_iters=1,
         return_node_ordering=True,
@@ -212,8 +213,10 @@ class TorchGraphImporter:
                 elif optimizer is not None:
                     optimizer.step()
 
-                # TODO: this causes graph to show an output with many incoming edges. Shall we try `return None` or simply don't return?
-                return list(params.values())
+                result = list(params.values())
+                if model_return_output:
+                    result += out
+                return result
 
         def detach_decomposition(x):
             return x
