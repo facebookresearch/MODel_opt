@@ -19,26 +19,30 @@ commands:
     parameters:
       python_version:
         type: string
-        default: "3.8"
+        # Python <= 3.8 required to install gurobipy==9.1.1
+        default: "3.8.6"
     steps:
       - run:
-          name: "Install and set Python 3.8.6"
+          name: "Install and set Python"
           command: |
-            pyenv install 3.8.6
-            pyenv global 3.8.6
+            pyenv install << parameters.python_version >>
+            pyenv global << parameters.python_version >>
       - run:
           name: "Create Virtual environment"
           command: |
             pip install virtualenv
             python -m venv ~/venv
             echo "source ~/venv/bin/activate" >> $BASH_ENV
+      - run:
+          name: "Update pip"
+          command: |
+            pip install --upgrade pip
 
   install_python_dependencies:
     steps:
       - run:
           name: "Install Python dependencies"
           command: |
-            pip install --upgrade pip
             pip install gurobipy==9.1.1 -r requirements.txt --extra-index-url https://download.pytorch.org/whl/nightly/cu113
 
   run_tests_gurobi:
@@ -47,6 +51,13 @@ commands:
           name: "Run tests with optimizer=Gurobi"
           command: |
             python -m unittest discover -s tests --pattern "*_test.py"
+
+  install_olla:
+    steps:
+      - run:
+          name: "Install olla from source"
+          command: |
+            pip install gurobipy==9.1.1 . --extra-index-url https://download.pytorch.org/whl/nightly/cu113
 
 jobs:
   ubuntu_python_3_8_6_torch_cuda_11_3:
@@ -58,8 +69,19 @@ jobs:
       - install_python_dependencies
       - run_tests_gurobi
 
+  ubuntu_python_3_8_6_torch_cuda_11_3_install:
+    <<: *gpu
+    steps:
+      - install_system_dependencies
+      - setup_python
+      - checkout
+      - install_olla
+      - test_external_import
+
 workflows:
   build-test:
     jobs:
       - ubuntu_python_3_8_6_torch_cuda_11_3:
           name: "Ubuntu | Python 3.8.6 | CUDA 11.3 | Gurobi"
+      - ubuntu_python_3_8_6_torch_cuda_11_3:
+          name: "Ubuntu | Python 3.8.6 | CUDA 11.3 | Gurobi | Installation Test"
