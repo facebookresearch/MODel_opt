@@ -17,9 +17,8 @@ def extract_tensors_and_params(results):
 
     return outputs, params
 
-# TODO: support evaluation
 # TODO: add options to enable/disable node ordering, defragmentation, etc.
-def optimize(model, inputs, loss_fn, optimizer):
+def optimize(model, inputs, loss_fn=None, optimizer=None):
     # import fx graph and data flow graph
     importer = torch_graph_importer.TorchGraphImporter()
     (
