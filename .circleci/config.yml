@@ -38,15 +38,7 @@ commands:
       - run:
           name: "Install General Python dependencies"
           command: |
-            pip install networkx graphviz intervaltree pandas pydot
-
-  install_torch_1_13_1_cuda_11_3:
-    steps:
-      - run:
-          name: "Install PyTorch 1.13.1 - CUDA 11.3"
-          command: |
-            pip install torch torchvision torchaudio torchtext \
-              --extra-index-url https://download.pytorch.org/whl/nightly/cu113
+            pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/nightly/cu113
 
   install_gurobi_9_1_1:
     steps:
@@ -68,10 +60,9 @@ jobs:
     steps:
       - install_system_dependencies
       - setup_python
-      - install_python_dependencies
-      - install_torch_1_13_1_cuda_11_3
-      - install_gurobi_9_1_1
       - checkout
+      - install_gurobi_9_1_1
+      - install_python_dependencies
       - run_tests_gurobi
 
 workflows:
