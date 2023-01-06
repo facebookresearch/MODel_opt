@@ -99,6 +99,23 @@ class OLLAAPIsTest(unittest.TestCase):
         # everytime we run the model, the weights get updated, so we expect the output to be different
         assert(not torch.allclose(y, y2))
 
+    def testAlexNetEval(self):
+        model = torchvision.models.alexnet()
+        input = torch.randn((1, 3, 224, 224), requires_grad=False)
+
+        model.eval()
+        model_opt = olla.optimize(model, input)
+
+        y_orig = model(input)
+        y = model_opt(input)
+        assert(torch.allclose(y, y_orig))
+
+        y2_orig = model(input)
+        y2 = model_opt(input)
+        # since this is inference mode, everytime we run the model with same input, we should get same output
+        assert(torch.allclose(y2_orig, y_orig))
+        assert(torch.allclose(y, y2))
+
     def testAlexNetTrain(self):
         model = torchvision.models.alexnet()
         input = torch.randn((32, 3, 224, 224), requires_grad=True)
