@@ -73,22 +73,14 @@ def optimize(model, inputs, loss_fn, optimizer):
         def forward(self, x):
             with torch.no_grad():
                 torch.manual_seed(0)
-                result = self.fx_graph_opt.forward(
+                # TODO: what about buffers?
+                output, new_params = self.fx_graph_opt.forward(
                     (x, ),
                     params=dict(self.model.named_parameters()),
                     buffers=dict(self.model.named_buffers()),
                 )
 
-                outputs, new_params = extract_tensors_and_params(result)
-                for new_param, param in zip(new_params, self.model.parameters()):
-                    param.data = new_param
-                
-                # TODO: find a way to unpack the list of outputs
-                if isinstance(outputs, list):
-                    if len(outputs):
-                        return outputs[0]
-                
-                return outputs
+                return output
                     
 
     model_opt = OptimizedModel(model, fx_graph_opt)

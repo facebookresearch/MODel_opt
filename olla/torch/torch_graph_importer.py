@@ -213,10 +213,10 @@ class TorchGraphImporter:
                 elif optimizer is not None:
                     optimizer.step()
 
-                result = list(params.values())
                 if model_return_output:
-                    result += out
-                return result
+                    return out, list(params.values())
+                else:
+                    return list(params.values())
 
         def detach_decomposition(x):
             return x
