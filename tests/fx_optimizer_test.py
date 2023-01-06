@@ -12,6 +12,8 @@ class FXOptimizerTest(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
 
+    # TODO: Test import_via_fx, import_via_acc_tracer, import_via_functorch?
+
     def testSimpleModule(self):
         class SimpleModule(torch.nn.Module):
             def __init__(self):
