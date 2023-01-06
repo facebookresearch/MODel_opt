@@ -36,9 +36,9 @@ commands:
   install_python_dependencies:
     steps:
       - run:
-          name: "Install General Python dependencies"
+          name: "Install Python dependencies"
           command: |
-            pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/nightly/cu113
+            pip install -r requirements.txt gurobi==9.1.1 --extra-index-url https://download.pytorch.org/whl/nightly/cu113
 
   install_gurobi_9_1_1:
     steps:
@@ -58,10 +58,10 @@ jobs:
   ubuntu_python_3_8_6_torch_cuda_11_3:
     <<: *gpu
     steps:
-      - checkout
       - install_system_dependencies
       - setup_python
-      - install_gurobi_9_1_1
+      - checkout
+      # - install_gurobi_9_1_1
       - install_python_dependencies
       - run_tests_gurobi
 
