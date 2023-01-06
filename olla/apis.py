@@ -5,18 +5,6 @@ from olla import training_graph_optimizer, utils
 from olla.torch import torch_graph_importer
 from olla.torch.fx_optimizer import FXOptimizer
 
-def extract_tensors_and_params(results):
-    outputs = []
-    params = []
-    # buffers = [] # TODO: support buffers
-    for res in results:
-        if isinstance(res, torch.nn.Parameter):
-            params.append(res)
-        else:
-            outputs.append(res)
-
-    return outputs, params
-
 def optimize(model, inputs, loss_fn=None, optimizer=None, node_reordering=True, defragmentation=False):
     # import fx graph and data flow graph
     importer = torch_graph_importer.TorchGraphImporter()
@@ -28,7 +16,7 @@ def optimize(model, inputs, loss_fn=None, optimizer=None, node_reordering=True, 
     ) = importer.import_via_aotautograd(
         model,
         inputs,
-        mode="train",
+        mode="train" if model.training else "eval",
         loss_fn=loss_fn,
         optimizer=optimizer,
         model_return_output=True,
@@ -78,12 +66,16 @@ def optimize(model, inputs, loss_fn=None, optimizer=None, node_reordering=True, 
             with torch.no_grad():
                 torch.manual_seed(0)
                 # TODO: what about buffers?
-                output, new_params = self.fx_graph_opt.forward(
+                result = self.fx_graph_opt.forward(
                     (x, ),
                     params=dict(self.model.named_parameters()),
                     buffers=dict(self.model.named_buffers()),
                 )
 
+                if model.training:
+                    output, params = result
+                else:
+                    output = result
                 return output
                     
 
