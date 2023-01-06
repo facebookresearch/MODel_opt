@@ -1,14 +1,14 @@
 import torch
 import torchvision
 
-from olla import apis
+import olla
 
 model = torchvision.models.alexnet()
 input = torch.randn((32, 3, 224, 224), requires_grad = True)
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 loss_fn = torch.nn.MSELoss()
 
-model_opt = apis.optimize(model, input, optimizer=optimizer, loss_fn=loss_fn)
+model_opt = olla.optimize(model, input, optimizer=optimizer, loss_fn=loss_fn)
 
 y = model_opt(input)
 y_orig = model(input)
