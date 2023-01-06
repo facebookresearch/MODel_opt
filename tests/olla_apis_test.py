@@ -120,8 +120,8 @@ class OLLAAPIsTest(unittest.TestCase):
         assert(torch.allclose(y2_orig, y_orig))
         assert(torch.allclose(y, y2))
 
-    def testAlexNetTrain(self):
-        model = torchvision.models.alexnet()
+    def testResNet18Train(self):
+        model = torchvision.models.resnet18()
         input = torch.randn((32, 3, 224, 224), requires_grad=True)
         optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
         loss_fn = torch.nn.MSELoss()
@@ -131,8 +131,7 @@ class OLLAAPIsTest(unittest.TestCase):
 
         y_orig = model(input)
         y = model_opt(input)
-        # FIXME: Assertion failing
-        # assert(torch.allclose(y, y_orig))
+        assert(torch.allclose(y, y_orig))
 
         y2 = model_opt(input)
         # everytime we run the model, the weights get updated, so we expect the output to be different
