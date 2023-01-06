@@ -17,8 +17,7 @@ def extract_tensors_and_params(results):
 
     return outputs, params
 
-# TODO: add options to enable/disable node ordering, defragmentation, etc.
-def optimize(model, inputs, loss_fn=None, optimizer=None):
+def optimize(model, inputs, loss_fn=None, optimizer=None, node_reordering=True, defragmentation=False):
     # import fx graph and data flow graph
     importer = torch_graph_importer.TorchGraphImporter()
     (
@@ -47,20 +46,26 @@ def optimize(model, inputs, loss_fn=None, optimizer=None):
     fx_graph.recompile()
 
     # run ILP solver on dataflow graph
-    s = training_graph_optimizer.Scheduler(g, rel_stop=0.005, timeout_s=1800)
-    summary, schedule, mem_loc = s.ComputeOptimalSchedule(
-        allow_swaps=False,
-        max_spills=0,
-    )
+    if node_reordering:
+        s = training_graph_optimizer.Scheduler(g, rel_stop=0.005, timeout_s=1800)
+        summary, schedule, mem_loc = s.ComputeOptimalSchedule(
+            allow_swaps=False,
+            max_spills=0,
+        )
 
-    assert utils.validate_timeline(schedule)
-    assert utils.validate_node_ordering(g, schedule)
+        assert utils.validate_timeline(schedule)
+        assert utils.validate_node_ordering(g, schedule)
 
-    # export ILP solution to fx graph
-    node_order_optimized = utils.extract_node_ordering(g, schedule)
-    fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
-    fx_opt.Reorder(node_order_optimized)
-    fx_graph_opt = fx_opt.fx_trace
+        # export ILP solution to fx graph
+        node_order_optimized = utils.extract_node_ordering(g, schedule)
+        fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
+        fx_opt.Reorder(node_order_optimized)
+        fx_graph_opt = fx_opt.fx_trace
+    else:
+        fx_graph_opt = fx_graph
+
+    if defragmentation:
+        raise Exception("Exporting address allocation (a.k.a. defragmentation) solution to PyTorch is not yet supported.")
 
     # wrap fx graph in torch.nn.Module
     class OptimizedModel(torch.nn.Module):
