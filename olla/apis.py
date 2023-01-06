@@ -83,5 +83,6 @@ def optimize(model, inputs, loss_fn, optimizer):
                 return output
                     
 
+    # return model
     model_opt = OptimizedModel(model, fx_graph_opt)
     return model_opt
