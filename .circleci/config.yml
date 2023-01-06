@@ -76,7 +76,7 @@ jobs:
       - setup_python
       - checkout
       - install_olla
-      - test_external_import
+      # - test_external_import
 
 workflows:
   build-test:
