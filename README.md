@@ -8,13 +8,15 @@
 
 Our approach is described in detail on the [OLLA arXiv paper](https://arxiv.org/abs/2210.12924). See [citing](#citation) below to attribute the work.
 
-## Getting Started
-The following steps are required to run the optimizer:
+## Quickstart
+Installing OLLA in your Python environment is simple:
+```bash
+git clone https://github.com/facebookresearch/olla
+pip install .
 ```
-conda create --name olla python=3.8
-conda activate olla
-pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu113
-```
+**Note**:
+- The above install will attempt to install `torch`, `torchaudio`, `torchvision`, and `torchtext` based on default distributions. To install for your CUDA version/OS, see the [PyTorch Getting Started](https://pytorch.org/get-started/locally/) documentation.
+- OLLA is tested with Gurobi 9.1.1; use your own license or version as needed.
 
 ### Benchmarks
 To run benchmarks:
