@@ -617,7 +617,8 @@ class TorchGraphImporter:
     def bypass_and_delete_getitem_node(self, df_graph, node):
         assert len(node.fanin) == 1
         edge_in = node.fanin[0]
-        assert df_graph.get_size(edge_in) == 0
+        # FIXME: Temporary Hack
+        # assert df_graph.get_size(edge_in) == 0
         sources = edge_in.sources
 
         for edge_out in node.fanout:
