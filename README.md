@@ -12,10 +12,10 @@ Our approach is described in detail on the [OLLA arXiv paper](https://arxiv.org/
 Installing OLLA in your Python environment is simple:
 ```bash
 git clone https://github.com/facebookresearch/olla
-pip install .
+pip install . [--extra-index-url <url>]
 ```
 **Note**:
-- The above install will attempt to install `torch`, `torchaudio`, `torchvision`, and `torchtext` based on default distributions. To install for your CUDA version/OS, see the [PyTorch Getting Started](https://pytorch.org/get-started/locally/) documentation.
+- The above install will attempt to install `torch`, `torchaudio`, `torchvision`, and `torchtext` based on default distributions. To install for your CUDA version/OS, see the [PyTorch Getting Started](https://pytorch.org/get-started/locally/) documentation, appending the `--extra-index-url` flag and value to the above install command as needed.
 - OLLA is tested with Gurobi 9.1.1; use your own license or version as needed.
 
 ### Benchmarks
