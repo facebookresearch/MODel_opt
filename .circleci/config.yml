@@ -59,6 +59,15 @@ commands:
           command: |
             pip install gurobipy==9.1.1 . --extra-index-url https://download.pytorch.org/whl/nightly/cu113
 
+  test_external_import:
+    steps:
+      - run:
+          name: "Import install olla components out-of-source"
+          command: |
+            cd
+            python -c "import olla"
+            python -c "from olla import optimize"
+
 jobs:
   ubuntu_python_3_8_6_torch_cuda_11_3:
     <<: *gpu
@@ -76,7 +85,7 @@ jobs:
       - setup_python
       - checkout
       - install_olla
-      # - test_external_import
+      - test_external_import
 
 workflows:
   build-test:
