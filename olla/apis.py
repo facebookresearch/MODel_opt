@@ -2,12 +2,12 @@ import torch
 import torchvision
 
 from olla import training_graph_optimizer, utils
-from olla.torch import torch_graph_importer
+from olla.torch.torch_graph_importer import TorchGraphImporter
 from olla.torch.fx_optimizer import FXOptimizer
 
 def optimize(model, inputs, loss_fn=None, optimizer=None, node_reordering=True, defragmentation=False):
     # import fx graph and data flow graph
-    importer = torch_graph_importer.TorchGraphImporter()
+    importer = TorchGraphImporter()
     (
         g,
         pytorch_node_order,
