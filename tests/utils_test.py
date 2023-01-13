@@ -17,7 +17,7 @@ class UtilsTest(unittest.TestCase):
 
     def testLineNumber(self):
         ln = utils.get_linenumber()
-        self.assertEqual(ln, 13)
+        self.assertEqual(ln, 19)
 
     def testExtractNodeOrdering(self):
         g = graph_with_weights.graph
