@@ -305,8 +305,8 @@ class TorchGraphImporter:
                 warm_up_iters=warm_up_iters,
                 profile_iters=profile_iters,
             )
-            profiler.run(*inputs)
-            runtime_table = profiler.summary()
+            with torch.no_grad():
+                profiler.run(*inputs)
 
         # run shape propagation on fx_traces
         if shape_inference:
@@ -338,7 +338,7 @@ class TorchGraphImporter:
 
         # add profiling data to nodes
         if profile:
-            self._load_profile_data_to_graph(df_graph, runtime_table)
+            self._load_profile_data_to_graph(df_graph, profiler)
             profiler = spill_profiler.SpillProfiler(df_graph)
             spill_times = profiler.benchmark_all()
             for e, r in spill_times.items():
@@ -436,25 +436,18 @@ class TorchGraphImporter:
         else:
             return result
 
-    def _load_profile_data_to_graph(self, df_graph, profiler_table):
-        if "runtimes_sec" in profiler_table.columns:
+    def _load_profile_data_to_graph(self, df_graph, profiler):
+        profiler_table = profiler.summary()
+        if profiler.profile_time:
             for _, row in profiler_table.iterrows():
                 df_node = df_graph.find_node(row["Op name"])
                 if df_node:
                     df_node.time = row["runtimes_sec"]
 
-        if (
-            "reserved_bytes.all.current" in profiler_table.columns
-            and "allocated_bytes.all.current" in profiler_table.columns
-        ):
-            # deduce maximum memory fragmentation
-            profiler_table["reserved_bytes.all.current"] = pd.to_numeric(profiler_table["reserved_bytes.all.current"])
-            idx = profiler_table["reserved_bytes.all.current"].idxmax()
-            row = profiler_table.iloc[idx]
-            df_graph.max_mem_fragmentation = (
-                row["reserved_bytes.all.current"] - row["allocated_bytes.all.current"]
-            ) / row["reserved_bytes.all.current"]
-            df_graph.peak_reserved_bytes = row["reserved_bytes.all.current"]
+        if profiler.profile_memory:
+            # TODO: return memory fragmentation info directly rather than adding them as attributed to dataflow graph
+            df_graph.max_mem_fragmentation = profiler.get_max_mem_fragmentation()
+            df_graph.peak_reserved_bytes = profiler.get_peak_reserved_bytes()
 
     def _cleanup_dataflow_graph(self, df_graph):
         unused_weight_size = 0

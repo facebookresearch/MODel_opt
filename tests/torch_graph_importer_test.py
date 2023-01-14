@@ -1029,12 +1029,9 @@ MultiSourceEdge getitem_10:0_opt, size:5440, mem_space:None, tile_id:None group_
             dot = g.dump()
             print(dot)
 
-            # when using torch.optim.SGD, inplace ops cannot be profiled
             for node in g.nodes.values():
                 assert (
-                    (node.time and node.time > 0)
-                    or node.name == "add_"
-                    or node.name.startswith("add__")
+                    node.time and node.time > 0
                 ), f"Profiled execution time of node {node.name} is {node.time} but should be greater than zero as it is not an `add_` in place node."
 
         if True:
@@ -1122,12 +1119,9 @@ MultiSourceEdge getitem_10:0_opt, size:5440, mem_space:None, tile_id:None group_
             print(dot)
 
             # TODO: after loading memory stats into each node, verify some memory stats rather than time
-            # when using torch.optim.SGD, inplace ops cannot be profiled
             for node in g.nodes.values():
                 assert (
-                    (node.time and node.time > 0)
-                    or node.name == "add_"
-                    or node.name.startswith("add__")
+                    node.time and node.time > 0
                 ), f"Profiled execution time of node {node.name} is {node.time} but should be greater than zero as it is not an `add_` in place node."
 
         if True:
