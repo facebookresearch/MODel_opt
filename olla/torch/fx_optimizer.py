@@ -90,6 +90,8 @@ class FXOptimizer:
         self.fx_trace.graph.lint()
         self.fx_trace.recompile()
 
+        # TODO: verify order in `node_order` has been preserved
+
 # TODO: move to utils file
 def find_fx_node(fx_graph, name):
     for node in fx_graph.nodes:

@@ -20,6 +20,7 @@ import torchvision
 
 from olla import simulator, training_graph_optimizer, utils, visualizer
 from olla.torch import torch_graph_importer
+from olla.torch.fx_optimizer import FXOptimizer
 
 # Fix the environment to enable graphviz to work.
 # del os.environ["LD_LIBRARY_PATH"]
@@ -36,6 +37,7 @@ class Benchmark:
         warm_up_iters=0,
         profile_iters=1,
         render_model=False,
+        infer_trace=False,
     ):
         if model_name == "alexnet":
             model = torchvision.models.alexnet()
@@ -188,19 +190,35 @@ class Benchmark:
 
         optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
         importer = torch_graph_importer.TorchGraphImporter()
-        g, pt_node_order = importer.import_via_aotautograd(
+        (g, pt_node_order, fx_graph, fx_to_df_map) = importer.import_via_aotautograd(
             model,
             *inputs,
             optimizer=optimizer,
+            loss_fn=torch.nn.CrossEntropyLoss(),
             mode=mode,
             profile=profile,
             warm_up_iters=warm_up_iters,
             profile_iters=profile_iters,
+            return_node_ordering=True,
+            return_fx_graph=True,
         )
         g.name = f"{model_name}_{batch_size}_{mode}"
 
+        outputs = None
+        if infer_trace:
+            print("  INFER ORIGINAL FX TRACE", flush=True)
+            fx_graph.recompile()
+            with torch.no_grad():
+                torch.manual_seed(0)
+                output = fx_graph.forward(
+                    inputs,
+                    params=dict(model.named_parameters()),
+                    buffers=dict(model.named_buffers()),
+                )
+            outputs = [output] if type(output) is not list else output
+
         # Prevent Pytorch from leaking memory
-        del model
+        # del model
         del importer.fx_trace
         del importer
         torch.cuda.empty_cache()
@@ -239,13 +257,14 @@ class Benchmark:
         print("  CONSTRAINING TENSOR GENERATORS", flush=True)
         g.constrain_tensor_generators()
 
-        print("  CHECKING MODEL", flush=True)
+        print("  CHECKING GRAPH", flush=True)
         assert g.is_valid(verbose=True)
 
         # model_name = model.__class__.__name__
         # g.dump("/tmp/" + model_name + "_" + mode, format="svg")
 
-        return g, pt_node_order
+        # TODO: instead of passing around many objects, perhaps we should encapsulate this function and the variables in the class.
+        return g, pt_node_order, fx_graph, fx_to_df_map, model, inputs, outputs
 
     def measure_pt_alloc_time(self, node_ordering, num_times=100):
         class MemLoc:
@@ -289,6 +308,19 @@ class Benchmark:
 
     # TODO: should we have run_profile() as a function here that measures fragmentation, instead of calculating or measuring fragmentation inside TorchGraphImporter? This would decouple profiling from TorchGraphImporter and hence make it easier to run the same script on AWS
 
+    def verify_fx_trace(self, fx_graph, model, outputs_orig):
+        with torch.no_grad():
+            torch.manual_seed(0)
+            output = fx_graph.forward(
+                inputs,
+                params=dict(model.named_parameters()),
+                buffers=dict(model.named_buffers()),
+            )
+
+        outputs = [output] if type(output) is not list else output
+        for orig, after in zip(outputs_orig, outputs):
+            assert torch.allclose(orig, after)
+
     def run_simulation(self, g, node_order):
         start = time.time()
         s = simulator.Simulator(g)
@@ -296,7 +328,7 @@ class Benchmark:
         simulated_mem_usage, mem_per_timestep = s.Simulate(node_order)
         return (simulated_mem_usage, stop - start)
 
-    def run_node_ordering(self, g):
+    def run_node_ordering(self, g, fx_graph, fx_to_df_map):
         start = time.time()
         s = training_graph_optimizer.Scheduler(g, rel_stop=0.005, timeout_s=1800)
         summary, schedule, mem_loc = s.ComputeOptimalSchedule(
@@ -312,7 +344,11 @@ class Benchmark:
         assert summary["total_data_swapped"] == 0
 
         node_ordering = utils.extract_node_ordering(g, schedule)
-        return (summary["peak_mem_usage"], node_ordering, stop - start)
+        fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
+        fx_opt.Reorder(node_ordering)
+        fx_graph_opt = fx_opt.fx_trace
+
+        return (summary["peak_mem_usage"], node_ordering, fx_graph_opt, stop - start)
 
     def run_address_generation(self, g, node_order):
         start = time.time()
@@ -425,6 +461,7 @@ parser.add_argument("--spilling", action="store_true")
 parser.add_argument("--render-models", action="store_true")
 parser.add_argument("--gpu-profile", action="store_true")
 parser.add_argument("--profile-alloc-time", action="store_true")
+parser.add_argument("--verify-node-ordering", action="store_true")
 parser.add_argument("--skip-simulation", action="store_true")
 parser.add_argument("--skip-node-ordering", action="store_true")
 parser.add_argument("--log-path", "--log_path", default="/tmp/opt4ml_benchmarks.csv")
@@ -464,7 +501,15 @@ if __name__ == "__main__":
                     device = "cuda"
 
                 try:
-                    graph, pt_node_order = b.load_model(
+                    (
+                        graph,
+                        pt_node_order,
+                        fx_graph,
+                        fx_to_df_map,
+                        torch_model,
+                        inputs,
+                        outputs,
+                    ) = b.load_model(
                         model,
                         mode,
                         batch_size,
@@ -473,6 +518,7 @@ if __name__ == "__main__":
                         warm_up_iters=warm_up_iters,
                         profile_iters=profile_iters,
                         render_model=args.render_models,
+                        infer_trace=args.verify_node_ordering,
                     )
                 except Exception as e:
                     print(f"  FAILED TO LOAD {model}, SKIPPING TO NEXT MODEL: {e}")
@@ -518,15 +564,38 @@ if __name__ == "__main__":
                         not args.skip_simulation
                     ), "Simulation is required to run node ordering"
                     try:
-                        peak_mem_usage, node_ordering, runtime = b.run_node_ordering(
-                            graph
-                        )
+                        print("  PERFORM NODE REORDERING", flush=True)
+                        (
+                            peak_mem_usage,
+                            node_ordering,
+                            fx_graph_opt,
+                            runtime,
+                        ) = b.run_node_ordering(graph, fx_graph, fx_to_df_map)
+
                         print(
                             f"  REORDERED NODES IN {runtime:.1f}s. PEAK MEM USAGE WAS {peak_mem_usage} (SAVED {(simulated_mem_usage - peak_mem_usage) / simulated_mem_usage * 100:.1f}%)",
                             flush=True,
                         )
+
                         result["node_ordering.runtime"] = runtime
                         result["node_ordering.peak_mem_usage"] = peak_mem_usage
+
+                        if args.verify_node_ordering:
+                            print("  INFER FX TRACE AFTER NODE REORDERING", flush=True)
+                            try:
+                                b.verify_fx_trace(fx_graph_opt, torch_model, outputs)
+                                result["node_ordering.verification"] = "SUCCESS"
+                            except Exception as e:
+                                print(
+                                    f"  FAILED TO VERIFY REORDERED NODES: {e}",
+                                    flush=True,
+                                )
+                                result["node_ordering.verification"] = "FAIL"
+                                result["node_ordering.verification.error"] = str(
+                                    e
+                                ).replace("\n", " ")
+                                continue
+
                     except Exception as e:
                         print(f"  FAILED TO REORDER NODES: {e}", flush=True)
                         result["node_ordering.error"] = str(e).replace("\n", " ")
