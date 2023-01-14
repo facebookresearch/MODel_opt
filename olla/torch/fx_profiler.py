@@ -33,11 +33,20 @@ class ProfilingInterpreter(torch.fx.Interpreter):
             assert (
                 torch.cuda.is_available()
             ), "Currently memory profile is only supported on CUDA"
+        self._reset()
+
+    def _reset(self):
+        self.warm_up = False
         self.total_runtime_sec: List[float] = []
         self.node_profiles = OrderedDict()
-        self.warm_up = False
+        self.table = None
+        self.max_mem_fragmentation = None
+        self.peak_reserved_bytes = None
 
     def run(self, *args) -> Any:
+        # reset profile results and status variables
+        self._reset()
+
         for _ in range(self.warm_up_iters):
             # running without profiling
             # print(f"warm up execution iteration {i}")
@@ -82,9 +91,10 @@ class ProfilingInterpreter(torch.fx.Interpreter):
 
         return return_val
 
-    # TODO: decouple calculating averages from printing the result, and hence always calculate averages at the end of profiling
-    def summary(self, sort_by: Optional[Union[str, List[str]]] = None) -> str:
-        table = pd.DataFrame()
+    def _generate_summary(
+        self, sort_by: Optional[Union[str, List[str]]] = None
+    ) -> None:
+        self.table = pd.DataFrame()
         # Can be used later if we want percentage time of each node with respect to whole model
         mean_total_runtime = statistics.mean(self.total_runtime_sec)  # noqa
 
@@ -105,15 +115,45 @@ class ProfilingInterpreter(torch.fx.Interpreter):
                     row["allocated_bytes.all.current"] = allocated_mem_at_max
                 else:
                     row[name] = statistics.mean(values)
-            table = pd.concat([table, pd.Series(row).to_frame().T], ignore_index=True)
+            self.table = self.table.append(row, ignore_index=True)
 
         # ensure that the first 3 columns are: Op name, Op type, runtime
-        table.insert(0, "Op name", table.pop("Op name"))
-        table.insert(1, "Op type", table.pop("Op type"))
+        self.table.insert(0, "Op name", self.table.pop("Op name"))
+        self.table.insert(1, "Op type", self.table.pop("Op type"))
         if self.profile_time:
-            table.insert(2, "runtimes_sec", table.pop("runtimes_sec"))
+            self.table.insert(2, "runtimes_sec", self.table.pop("runtimes_sec"))
 
         if sort_by:
-            table.sort_values(sort_by)
+            self.table.sort_values(sort_by)
 
-        return pd.DataFrame(table)
+    def summary(self, sort_by: Optional[Union[str, List[str]]] = None) -> pd.DataFrame:
+        if self.table is None or sort_by:
+            self._generate_summary(sort_by)
+        return self.table
+
+    def _calculate_maximum_memory_fragmentation(self) -> None:
+        assert (
+            self.profile_memory
+        ), "Can only calculate memory fragmentation if profiling is enabled"
+
+        if self.table is None:
+            self._generate_summary()
+
+        idx = self.table["reserved_bytes.all.current"].idxmax()
+        row = self.table.iloc[idx]
+        self.max_mem_fragmentation = (
+            row["reserved_bytes.all.current"] - row["allocated_bytes.all.current"]
+        ) / row["reserved_bytes.all.current"]
+        self.peak_reserved_bytes = row["reserved_bytes.all.current"]
+
+    def get_peak_reserved_bytes(self) -> Optional[int]:
+        if self.peak_reserved_bytes is None:
+            self._calculate_maximum_memory_fragmentation()
+
+        return self.peak_reserved_bytes
+
+    def get_max_mem_fragmentation(self) -> Optional[float]:
+        if self.max_mem_fragmentation is None:
+            self._calculate_maximum_memory_fragmentation()
+
+        return self.max_mem_fragmentation
