@@ -330,7 +330,7 @@ class Benchmark:
 
     def run_node_ordering(self, g, fx_graph, fx_to_df_map):
         start = time.time()
-        s = training_graph_optimizer.Scheduler(g, rel_stop=0.005, timeout_s=1800)
+        s = training_graph_optimizer.Scheduler(g, rel_stop=0.005, timeout_s=args.solver_timeout)
         summary, schedule, mem_loc = s.ComputeOptimalSchedule(
             allow_swaps=False,
             max_spills=0,
@@ -355,7 +355,7 @@ class Benchmark:
         s = training_graph_optimizer.Scheduler(
             g,
             rel_stop=0.001,
-            timeout_s=1800,
+            timeout_s=args.solver_timeout,
             print_relaxation=True,
         )
         summary, schedule, mem_loc = s.ComputeOptimalSchedule(
@@ -378,7 +378,7 @@ class Benchmark:
 
     def run_rematerialization(self, g, memory_budget):
         start = time.time()
-        s = training_graph_optimizer.Scheduler(g, rel_stop=0.01, timeout_s=1800)
+        s = training_graph_optimizer.Scheduler(g, rel_stop=0.01, timeout_s=args.solver_timeout)
         summary, schedule, mem_loc = s.ComputeOptimalSchedule(
             allow_swaps=False,
             allow_rematerialization=True,
@@ -398,7 +398,7 @@ class Benchmark:
 
     def run_spilling(self, g, memory_budget):
         start = time.time()
-        s = training_graph_optimizer.Scheduler(g, rel_stop=0.01, timeout_s=1800)
+        s = training_graph_optimizer.Scheduler(g, rel_stop=0.01, timeout_s=args.solver_timeout)
         summary, schedule, mem_loc = s.ComputeOptimalSchedule(
             allow_swaps=True,
             allow_rematerialization=False,
@@ -454,6 +454,8 @@ parser = argparse.ArgumentParser(description="MemOpt Benchmarks")
 parser.add_argument("-b", "--batch-size", "--batch-sizes", nargs="+", type=int, default=[1, 32])
 parser.add_argument("-m", "--model", "--models", nargs="+", type=str, default=BENCHMARKS.keys())
 parser.add_argument("--mode", "--modes", nargs="+", type=str, choices=["eval", "train"], default=None)
+
+parser.add_argument("--solver-timeout", type=int, default=1800, help="ILP solver timeout in seconds")
 # fmt: on
 parser.add_argument("--render-models", action="store_true")
 parser.add_argument("--gpu-profile", action="store_true")
