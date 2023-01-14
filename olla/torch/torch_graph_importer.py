@@ -305,7 +305,8 @@ class TorchGraphImporter:
                 warm_up_iters=warm_up_iters,
                 profile_iters=profile_iters,
             )
-            profiler.run(*inputs)
+            with torch.no_grad():
+                profiler.run(*inputs)
             runtime_table = profiler.summary()
 
         # run shape propagation on fx_traces
