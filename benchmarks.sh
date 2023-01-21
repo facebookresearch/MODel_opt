@@ -108,7 +108,7 @@ for benchmark in "${BENCHMARKS[@]}"; do
   while IFS=',' read -r model mode batch_size; do
     append_log=$([ "${first_time}" == 1 ] && echo || echo "--append-log")
 
-    python benchmarks.py -b "${batch_size}" --model "${model}" --mode "${mode}" ${append_log} &
+    python benchmarks.py -b "${batch_size}" --model "${model}" --mode "${mode}" ${append_log} $@ &
 
     # kill python run if user kills shell script, then terminate script
     FIND_PID=$!
