@@ -126,9 +126,9 @@ class ILPSolver:
         # problem is infeasible.
         if self.timeout:
             timeout = float("inf") if self.timeout == 0 else abs(self.timeout)
-            self.model.setParam("maxtime", timeout)
+            self.model.setParam("TimeLimit", timeout)
         if self.rel_stop:
-            self.model.setParam("miprelstop", self.rel_stop)
+            self.model.setParam("MIPGap", self.rel_stop)
         if self.method:
             self.model.setParam("Method", self.method)
         if self.int_feas_tol:
