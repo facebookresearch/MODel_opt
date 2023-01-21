@@ -141,19 +141,26 @@ class ProfilingInterpreter(torch.fx.Interpreter):
 
         idx = self.table["reserved_bytes.all.current"].idxmax()
         row = self.table.iloc[idx]
-        self.max_mem_fragmentation = (
-            row["reserved_bytes.all.current"] - row["allocated_bytes.all.current"]
-        ) / row["reserved_bytes.all.current"]
+        self.allocated_mem_at_peak = row["allocated_bytes.all.current"]
         self.peak_reserved_bytes = row["reserved_bytes.all.current"]
+        self.max_mem_fragmentation = (
+            self.peak_reserved_bytes - self.allocated_mem_at_peak
+        ) / self.peak_reserved_bytes
 
-    def get_peak_reserved_bytes(self) -> Optional[int]:
+    def get_peak_reserved_bytes(self) -> int:
         if self.peak_reserved_bytes is None:
             self._calculate_maximum_memory_fragmentation()
 
         return self.peak_reserved_bytes
 
-    def get_max_mem_fragmentation(self) -> Optional[float]:
+    def get_max_mem_fragmentation(self) -> float:
         if self.max_mem_fragmentation is None:
             self._calculate_maximum_memory_fragmentation()
 
         return self.max_mem_fragmentation
+
+    def get_allocated_mem_at_peak(self) -> float:
+        if self.allocated_mem_at_peak is None:
+            self._calculate_maximum_memory_fragmentation()
+
+        return self.allocated_mem_at_peak

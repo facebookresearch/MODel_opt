@@ -540,12 +540,15 @@ if __name__ == "__main__":
                 )
                 if args.memory_profile:
                     print(
-                        f"PROFILED MAX MEMORY FRAGMENTATION IS {graph.max_mem_fragmentation*100}% AND PROFILED PEAK MEMORY IS {graph.peak_reserved_bytes/(2**30)} GB"
+                        f"PROFILED MAX MEMORY FRAGMENTATION IS {graph.max_mem_fragmentation*100}% AND PROFILED PEAK MEMORY IS {graph.peak_reserved_bytes/(2**30)} GB, PROFILED ALLOCATED MEMORY AT PEAK IS {graph.allocated_mem_at_peak/(2**30)} GB"
                     )
                     result[
                         "profile.max_mem_fragmentation"
                     ] = graph.max_mem_fragmentation
                     result["profile.peak_mem_usage"] = graph.peak_reserved_bytes
+                    result[
+                        "profile.allocated_mem_at_peak"
+                    ] = graph.allocated_mem_at_peak
 
                 if not args.skip_simulation:
                     simulated_peak_mem_usage, _ = b.run_simulation(
@@ -627,7 +630,7 @@ if __name__ == "__main__":
                                 result["node_ordering.profile"] = "SUCCESS"
 
                                 print(
-                                    f"AFTER NODE ORDERING: PROFILED MAX MEMORY FRAGMENTATION IS {profiler.get_max_mem_fragmentation()*100}% AND PROFILED PEAK MEMORY IS {profiler.get_peak_reserved_bytes()/(2**30)} GB"
+                                    f"AFTER NODE ORDERING: PROFILED MAX MEMORY FRAGMENTATION IS {profiler.get_max_mem_fragmentation()*100}% AND PROFILED PEAK MEMORY IS {profiler.get_peak_reserved_bytes()/(2**30)} GB, PROFILED ALLOCATED MEMORY AT PEAK IS {profiler.get_allocated_mem_at_peak()/(2**30)} GB"
                                 )
                                 result[
                                     "node_ordering.profile.max_mem_fragmentation"

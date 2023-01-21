@@ -448,6 +448,7 @@ class TorchGraphImporter:
             # TODO: return memory fragmentation info directly rather than adding them as attributed to dataflow graph
             df_graph.max_mem_fragmentation = profiler.get_max_mem_fragmentation()
             df_graph.peak_reserved_bytes = profiler.get_peak_reserved_bytes()
+            df_graph.allocated_mem_at_peak = profiler.get_allocated_mem_at_peak()
 
     def _cleanup_dataflow_graph(self, df_graph):
         unused_weight_size = 0
