@@ -104,7 +104,6 @@ class BenchmarksTest(unittest.TestCase):
             "alexnet", additional_args="--verify-node-ordering --generate-addresses"
         )
 
-    @unittest.skip("FIXME: Bert faced a regression")
     def testBertBenchmarks(self):
         self.run_model_benchmarks("bert", additional_args="--generate-addresses")
 
