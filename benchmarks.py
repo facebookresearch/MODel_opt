@@ -458,13 +458,13 @@ parser.add_argument("--mode", "--modes", nargs="+", type=str, choices=["eval", "
 parser.add_argument("--solver-timeout", type=int, default=1800, help="ILP solver timeout in seconds")
 # fmt: on
 parser.add_argument("--render-models", action="store_true")
-parser.add_argument("--gpu-profile", action="store_true")
+parser.add_argument("--memory-profile", action="store_true")
 parser.add_argument("--profile-alloc-time", action="store_true")
 parser.add_argument("--skip-simulation", action="store_true")
 
 parser.add_argument("--skip-node-ordering", action="store_true")
 parser.add_argument("--verify-node-ordering", action="store_true")
-parser.add_argument("--gpu-profile-node-ordering", action="store_true")
+parser.add_argument("--memory-profile-node-ordering", action="store_true")
 
 parser.add_argument("--generate-addresses", action="store_true")
 
@@ -499,12 +499,12 @@ if __name__ == "__main__":
                 profile = []
                 warm_up_iters = 1
                 profile_iters = 10
-                if args.rematerialization or args.spilling or args.gpu_profile:
+                if args.rematerialization or args.spilling or args.memory_profile:
                     profile.append("time")
-                if args.gpu_profile:
+                if args.memory_profile:
                     torch.cuda.empty_cache()
                     profile.append("memory")
-                if args.gpu_profile or args.gpu_profile_node_ordering:
+                if args.memory_profile or args.memory_profile_node_ordering:
                     warm_up_iters = 0
                     profile_iters = 300
                     device = "cuda"
@@ -538,7 +538,7 @@ if __name__ == "__main__":
                     f"BENCHMARKING MODEL {model} IN {mode} MODE WITH BATCH SIZE {batch_size}",
                     flush=True,
                 )
-                if args.gpu_profile:
+                if args.memory_profile:
                     print(
                         f"PROFILED MAX MEMORY FRAGMENTATION IS {graph.max_mem_fragmentation*100}% AND PROFILED PEAK MEMORY IS {graph.peak_reserved_bytes/(2**30)} GB"
                     )
@@ -605,7 +605,7 @@ if __name__ == "__main__":
                                 ).replace("\n", " ")
                                 continue
 
-                        if args.gpu_profile_node_ordering:
+                        if args.memory_profile_node_ordering:
                             print(
                                 "  PROFILE FX TRACE AFTER NODE REORDERING", flush=True
                             )
