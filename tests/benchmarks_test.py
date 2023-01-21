@@ -24,15 +24,18 @@ class BenchmarksTest(unittest.TestCase):
         batch_sizes: List[str] = None,
         solver_timeout: int = 120,
         time_profile: bool = True,
+        gpu_profile: bool = None,
         warm_up_iters=0,
         profile_iters=1,
         additional_args: str = "",
     ) -> pd.DataFrame:
         # set default values
-        if not modes:
+        if modes is None:
             modes = ["eval", "train"]
-        if not batch_sizes:
+        if batch_sizes is None:
             batch_sizes = [1, 32]
+        if gpu_profile is None:
+            gpu_profile = torch.cuda.is_available()
 
         # create arg strings
         log_path = f"/tmp/opt4ml_{model}_benchmarks.csv"
