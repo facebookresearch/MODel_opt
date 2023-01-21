@@ -448,6 +448,7 @@ class TorchGraphImporter:
             # TODO: return memory fragmentation info directly rather than adding them as attributed to dataflow graph
             df_graph.max_mem_fragmentation = profiler.get_max_mem_fragmentation()
             df_graph.peak_reserved_bytes = profiler.get_peak_reserved_bytes()
+            df_graph.allocated_mem_at_peak = profiler.get_allocated_mem_at_peak()
 
     def _cleanup_dataflow_graph(self, df_graph):
         unused_weight_size = 0
@@ -629,8 +630,14 @@ class TorchGraphImporter:
             assert node.fanin[i].size == 0
         assert len(node.fanout) == 1
 
-        # The first input will be modified in place and returned as output.
-        assert node.fanin[0].size == node.fanout[0].size
+        # The input whose size is the same as output will be modified in place and returned as output.
+        node_fanin_to_modify = None
+        for i in range(len(node.fanin)):
+            if node.fanin[i].size == node.fanout[0].size:
+                node_fanin_to_modify = node.fanin[i]
+                break
+        assert node_fanin_to_modify is not None
+
         node.fanout[0].size = 0
         for snk in node.fanout[0].sinks:
             # print(f"Processing snk {snk}")
@@ -638,8 +645,8 @@ class TorchGraphImporter:
             for i in range(0, len(snk.fanin)):
                 # print(f"    Checkin fanin {snk.fanin[i]} againt {node.fanout[0]}", flush=True)
                 if id(snk.fanin[i]) == id(node.fanout[0]):
-                    snk.fanin[i] = node.fanin[0]
-                    node.fanin[0].sinks.append(snk)
+                    snk.fanin[i] = node_fanin_to_modify
+                    node_fanin_to_modify.sinks.append(snk)
                     snk.fanin.append(node.fanout[0])
                     # print(f"   Updated sink node {snk}")
                     break

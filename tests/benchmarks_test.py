@@ -10,6 +10,7 @@ import unittest
 from typing import List
 
 import pandas as pd
+import torch
 
 
 class BenchmarksTest(unittest.TestCase):
@@ -22,24 +23,31 @@ class BenchmarksTest(unittest.TestCase):
         modes: List[str] = None,
         batch_sizes: List[str] = None,
         solver_timeout: int = 120,
+        time_profile: bool = True,
+        gpu_profile: bool = None,
+        warm_up_iters=0,
+        profile_iters=1,
         additional_args: str = "",
     ) -> pd.DataFrame:
         # set default values
-        if not modes:
+        if modes is None:
             modes = ["eval", "train"]
-        if not batch_sizes:
+        if batch_sizes is None:
             batch_sizes = [1, 32]
+        if gpu_profile is None:
+            gpu_profile = torch.cuda.is_available()
 
         # create arg strings
         log_path = f"/tmp/opt4ml_{model}_benchmarks.csv"
         arg_modes = " ".join(modes)
         arg_batch_sizes = " ".join(map(str, batch_sizes))
+        arg_time_profile = "--time-profile" if time_profile else ""
 
         # Run benchmark
         # TODO: Call functions in benchmarks.py instead of calling buck command
         subprocess.check_call(
             shlex.split(
-                f"python benchmarks.py --model={model} -b {arg_batch_sizes} --mode {arg_modes} --solver-timeout={solver_timeout} --log-path={log_path} {additional_args}"
+                f"python benchmarks.py --model={model} -b {arg_batch_sizes} --mode {arg_modes} --solver-timeout={solver_timeout} --log-path={log_path} {arg_time_profile} --warm-up-iters={warm_up_iters} --profile-iters={profile_iters} {additional_args}"
             )
         )
 
@@ -104,7 +112,6 @@ class BenchmarksTest(unittest.TestCase):
             "alexnet", additional_args="--verify-node-ordering --generate-addresses"
         )
 
-    @unittest.skip("FIXME: Bert faced a regression")
     def testBertBenchmarks(self):
         self.run_model_benchmarks("bert", additional_args="--generate-addresses")
 

@@ -330,7 +330,9 @@ class Benchmark:
 
     def run_node_ordering(self, g, fx_graph, fx_to_df_map):
         start = time.time()
-        s = training_graph_optimizer.Scheduler(g, rel_stop=0.005, timeout_s=args.solver_timeout)
+        s = training_graph_optimizer.Scheduler(
+            g, rel_stop=0.005, timeout_s=args.solver_timeout
+        )
         summary, schedule, mem_loc = s.ComputeOptimalSchedule(
             allow_swaps=False,
             max_spills=0,
@@ -344,6 +346,7 @@ class Benchmark:
         assert summary["total_data_swapped"] == 0
 
         node_ordering = utils.extract_node_ordering(g, schedule)
+
         fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
         fx_opt.Reorder(node_ordering)
         fx_graph_opt = fx_opt.fx_trace
@@ -378,7 +381,9 @@ class Benchmark:
 
     def run_rematerialization(self, g, memory_budget):
         start = time.time()
-        s = training_graph_optimizer.Scheduler(g, rel_stop=0.01, timeout_s=args.solver_timeout)
+        s = training_graph_optimizer.Scheduler(
+            g, rel_stop=0.01, timeout_s=args.solver_timeout
+        )
         summary, schedule, mem_loc = s.ComputeOptimalSchedule(
             allow_swaps=False,
             allow_rematerialization=True,
@@ -398,7 +403,9 @@ class Benchmark:
 
     def run_spilling(self, g, memory_budget):
         start = time.time()
-        s = training_graph_optimizer.Scheduler(g, rel_stop=0.01, timeout_s=args.solver_timeout)
+        s = training_graph_optimizer.Scheduler(
+            g, rel_stop=0.01, timeout_s=args.solver_timeout
+        )
         summary, schedule, mem_loc = s.ComputeOptimalSchedule(
             allow_swaps=True,
             allow_rematerialization=False,
@@ -449,22 +456,24 @@ BENCHMARKS = {
 
 import argparse
 
-parser = argparse.ArgumentParser(description="MemOpt Benchmarks")
 # fmt: off
+parser = argparse.ArgumentParser(description="MemOpt Benchmarks")
 parser.add_argument("-b", "--batch-size", "--batch-sizes", nargs="+", type=int, default=[1, 32])
 parser.add_argument("-m", "--model", "--models", nargs="+", type=str, default=BENCHMARKS.keys())
 parser.add_argument("--mode", "--modes", nargs="+", type=str, choices=["eval", "train"], default=None)
 
 parser.add_argument("--solver-timeout", type=int, default=1800, help="ILP solver timeout in seconds")
-# fmt: on
 parser.add_argument("--render-models", action="store_true")
-parser.add_argument("--gpu-profile", action="store_true")
+parser.add_argument("--memory-profile", action="store_true")
+parser.add_argument("--time-profile", action="store_true")
+parser.add_argument("--warm-up-iters", type=int, default=None, help="Warm up iterations before profiling time or memory.")
+parser.add_argument("--profile-iters", type=int, default=None, help="Number of iterations to profile time or memory.")
 parser.add_argument("--profile-alloc-time", action="store_true")
 parser.add_argument("--skip-simulation", action="store_true")
 
 parser.add_argument("--skip-node-ordering", action="store_true")
 parser.add_argument("--verify-node-ordering", action="store_true")
-parser.add_argument("--gpu-profile-node-ordering", action="store_true")
+parser.add_argument("--memory-profile-node-ordering", action="store_true")
 
 parser.add_argument("--generate-addresses", action="store_true")
 
@@ -474,7 +483,7 @@ parser.add_argument("--spilling", action="store_true")
 
 parser.add_argument("--log-path", "--log_path", default="/tmp/opt4ml_benchmarks.csv")
 parser.add_argument("--append-log", action="store_true")
-
+# fmt: on
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -497,16 +506,20 @@ if __name__ == "__main__":
                 )
                 device = "cpu"
                 profile = []
-                warm_up_iters = 1
-                profile_iters = 10
-                if args.rematerialization or args.spilling or args.gpu_profile:
+                warm_up_iters = 1 if args.warm_up_iters is None else args.warm_up_iters
+                profile_iters = 10 if args.profile_iters is None else args.profile_iters
+                if args.time_profile or args.rematerialization or args.spilling:
                     profile.append("time")
-                if args.gpu_profile:
+                if args.memory_profile:
                     torch.cuda.empty_cache()
                     profile.append("memory")
-                if args.gpu_profile or args.gpu_profile_node_ordering:
-                    warm_up_iters = 0
-                    profile_iters = 300
+                if args.memory_profile or args.memory_profile_node_ordering:
+                    warm_up_iters = (
+                        0 if args.warm_up_iters is None else args.warm_up_iters
+                    )
+                    profile_iters = (
+                        300 if args.profile_iters is None else args.profile_iters
+                    )
                     device = "cuda"
 
                 try:
@@ -538,14 +551,17 @@ if __name__ == "__main__":
                     f"BENCHMARKING MODEL {model} IN {mode} MODE WITH BATCH SIZE {batch_size}",
                     flush=True,
                 )
-                if args.gpu_profile:
+                if args.memory_profile:
                     print(
-                        f"PROFILED MAX MEMORY FRAGMENTATION IS {graph.max_mem_fragmentation*100}% AND PROFILED PEAK MEMORY IS {graph.peak_reserved_bytes/(2**30)} GB"
+                        f"PROFILED MAX MEMORY FRAGMENTATION IS {graph.max_mem_fragmentation*100}% AND PROFILED PEAK MEMORY IS {graph.peak_reserved_bytes/(2**30)} GB, PROFILED ALLOCATED MEMORY AT PEAK IS {graph.allocated_mem_at_peak/(2**30)} GB"
                     )
                     result[
                         "profile.max_mem_fragmentation"
                     ] = graph.max_mem_fragmentation
                     result["profile.peak_mem_usage"] = graph.peak_reserved_bytes
+                    result[
+                        "profile.allocated_mem_at_peak"
+                    ] = graph.allocated_mem_at_peak
 
                 if not args.skip_simulation:
                     simulated_peak_mem_usage, _ = b.run_simulation(
@@ -603,9 +619,8 @@ if __name__ == "__main__":
                                 result["node_ordering.verification.error"] = str(
                                     e
                                 ).replace("\n", " ")
-                                continue
 
-                        if args.gpu_profile_node_ordering:
+                        if args.memory_profile_node_ordering:
                             print(
                                 "  PROFILE FX TRACE AFTER NODE REORDERING", flush=True
                             )
@@ -627,7 +642,7 @@ if __name__ == "__main__":
                                 result["node_ordering.profile"] = "SUCCESS"
 
                                 print(
-                                    f"AFTER NODE ORDERING: PROFILED MAX MEMORY FRAGMENTATION IS {profiler.get_max_mem_fragmentation()*100}% AND PROFILED PEAK MEMORY IS {profiler.get_peak_reserved_bytes()/(2**30)} GB"
+                                    f"AFTER NODE ORDERING: PROFILED MAX MEMORY FRAGMENTATION IS {profiler.get_max_mem_fragmentation()*100}% AND PROFILED PEAK MEMORY IS {profiler.get_peak_reserved_bytes()/(2**30)} GB, PROFILED ALLOCATED MEMORY AT PEAK IS {profiler.get_allocated_mem_at_peak()/(2**30)} GB"
                                 )
                                 result[
                                     "node_ordering.profile.max_mem_fragmentation"
