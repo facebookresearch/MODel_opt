@@ -261,7 +261,7 @@ class Benchmark:
             importer.profiler_table.to_csv(
                 f"{gpu_log_dir}/{model_name}_{batch_size}_{mode}.csv"
             )
-            with open(f"{gpu_log_dir}/max_fragmentation.csv", "a+") as f:
+            with open(args.log_path, "a+") as f:
                 f.write(
                     f"{model_name},{batch_size},{mode},{max_mem_fragmentation},{peak_reserved_bytes}\n"
                 )
@@ -273,6 +273,9 @@ BENCHMARKS = {
 }
 import argparse
 parser = argparse.ArgumentParser(description="MemOpt Benchmarks")
+parser.add_argument("-b", "--batch-size", "--batch-sizes", nargs="+", type=int, default=[1, 32])
+parser.add_argument("-m", "--model", "--models", nargs="+", type=str, default=BENCHMARKS.keys())
+parser.add_argument("--mode", "--modes", nargs="+", type=str, choices=["eval", "train"], default=None)
 parser.add_argument("--generate-addresses", action="store_true")
 parser.add_argument("--rematerialization", action="store_true")
 parser.add_argument("--render-models", action="store_true")
@@ -280,19 +283,22 @@ parser.add_argument("--gpu-profile", action="store_true")
 parser.add_argument("--log-gpu-profile", action="store_true")
 parser.add_argument("--skip-simulation", action="store_true")
 parser.add_argument("--skip-node-ordering", action="store_true")
+parser.add_argument("--log-path", "--log_path", default="/tmp/opt4ml_benchmarks.csv")
+parser.add_argument("--append-log", action="store_true")
 if __name__ == "__main__":
     args = parser.parse_args()
     print(f"Running with args {args}")
     b = Benchmark()
-    if args.log_gpu_profile:
+    if args.log_gpu_profile and not args.append_log:
         os.makedirs(gpu_log_dir, exist_ok=True)
-        with open(f"{gpu_log_dir}/max_fragmentation.csv", "w+") as f:
+        with open(args.log_path, "w+") as f:
             f.write(
                 "model_name,batch_size,mode,g.max_mem_fragmentation,peak_reserved_bytes\n"
             )
-    for model, modes in BENCHMARKS.items():
+    for model in args.model:
+        modes = BENCHMARKS[model] if not args.mode else args.mode
         for mode in modes:
-            for batch_size in [64]:
+            for batch_size in args.batch_size:
                 print(
                     f"\nLOADING MODEL {model} IN {mode} MODE WITH BATCH SIZE {batch_size}",
                     flush=True,
@@ -309,7 +315,7 @@ if __name__ == "__main__":
                     warm_up_iters = 0
                     profile_iters = 300
                     device = "cuda"
-                if True: # try:
+                try:
                     b.load_model(
                         model,
                         mode,
@@ -321,6 +327,6 @@ if __name__ == "__main__":
                         log_gpu_profile=args.log_gpu_profile,
                         render_model=args.render_models,
                     )
-                else: # except Exception as e:
+                except Exception as e:
                     print(f"  FAILED TO LOAD {model}, SKIPPING TO NEXT MODEL: {e}")
                     continue
