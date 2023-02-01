@@ -176,6 +176,22 @@ class Benchmark:
             inputs = (
                 torchtext.functional.to_tensor(transform(input_batch), padding_value=1),
             )
+        elif model_name == "gpt2":
+            # TODO: Fix error when loading GPT2
+            from transformers import GPT2Tokenizer, GPT2Model
+            class GPT2Wrapper(torch.nn.Module):
+                def __init__(self):
+                    super(GPT2Wrapper, self).__init__()
+                    self.model = GPT2Model.from_pretrained('gpt2')
+
+                def forward(self, x):
+                    return self.model(x).last_hidden_state
+            tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+            text = "Replace me by any text you'd like."
+            tokens = tokenizer.tokenize(text)
+            indexed_tokens = tokenizer.convert_tokens_to_ids(tokens)
+            inputs = torch.tensor([indexed_tokens])
+            model = GPT2Wrapper()
 
         if mode == "eval":
             model.eval()
