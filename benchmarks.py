@@ -129,7 +129,7 @@ class Benchmark:
             bert_base = torchtext.models.ROBERTA_BASE_ENCODER
             model = bert_base.get_model()
             transform = bert_base.transform()
-            max_seq_len = 1024
+            max_seq_len = 512
             text = "Hello world"
             # Repeat text to fill maximum sequence length of model
             text = text * max_seq_len // len(text.split())
