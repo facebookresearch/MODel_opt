@@ -129,7 +129,11 @@ class Benchmark:
             bert_base = torchtext.models.ROBERTA_BASE_ENCODER
             model = bert_base.get_model()
             transform = bert_base.transform()
-            input_batch = ["Hello world"] * batch_size
+            max_seq_len = 1024
+            text = "Hello world"
+            # Repeat text to fill maximum sequence length of model
+            text = text * max_seq_len // len(text.split())
+            input_batch = [text] * batch_size
             inputs = (
                 torchtext.functional.to_tensor(transform(input_batch), padding_value=1),
             )
@@ -172,7 +176,11 @@ class Benchmark:
             xlmr_base = torchtext.models.XLMR_BASE_ENCODER
             model = xlmr_base.get_model()
             transform = xlmr_base.transform()
-            input_batch = ["Hello world"] * batch_size
+            max_seq_len = 1024
+            text = "Hello world"
+            # Repeat text to fill maximum sequence length of model
+            text = text * max_seq_len // len(text.split())
+            input_batch = [text] * batch_size
             inputs = (
                 torchtext.functional.to_tensor(transform(input_batch), padding_value=1),
             )
