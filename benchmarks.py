@@ -195,7 +195,11 @@ class Benchmark:
                 def forward(self, x):
                     return self.model(x).last_hidden_state
             tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+            max_seq_len = 1024
             text = "Replace me by any text you'd like."
+            # Repeat text to fill maximum sequence length of model
+            text = text * max_seq_len // len(text.split())
+            input_batch = [text] * batch_size
             tokens = tokenizer.tokenize(text)
             indexed_tokens = tokenizer.convert_tokens_to_ids(tokens)
             inputs = torch.tensor([indexed_tokens])
