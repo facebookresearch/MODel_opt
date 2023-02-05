@@ -571,7 +571,7 @@ if __name__ == "__main__":
                         infer_trace=args.verify_node_ordering,
                     )
                 except Exception as e:
-                    print(f"  FAILED TO LOAD {model}, SKIPPING TO NEXT MODEL: {e}")
+                    print(f"  FAILED TO LOAD {model}, SKIPPING TO NEXT MODEL:\n{traceback.format_exc()}")
                     result["load_model.error"] = str(e).replace("\n", " ")
                     continue
 
@@ -640,7 +640,7 @@ if __name__ == "__main__":
                                 result["node_ordering.verification"] = "SUCCESS"
                             except Exception as e:
                                 print(
-                                    f"  FAILED TO VERIFY REORDERED NODES: {e}",
+                                    f"  FAILED TO VERIFY REORDERED NODES:\n{traceback.format_exc()}",
                                     flush=True,
                                 )
                                 result["node_ordering.verification"] = "FAIL"
@@ -680,7 +680,7 @@ if __name__ == "__main__":
                                 ] = profiler.peak_reserved_bytes
                             except Exception as e:
                                 print(
-                                    f"  FAILED TO PROFILE REORDERED NODES: {e}",
+                                    f"  FAILED TO PROFILE REORDERED NODES:\n{traceback.format_exc()}",
                                     flush=True,
                                 )
                                 result["node_ordering.profile"] = "FAIL"
@@ -689,7 +689,7 @@ if __name__ == "__main__":
                                 )
 
                     except Exception as e:
-                        print(f"  FAILED TO REORDER NODES: {e}", flush=True)
+                        print(f"  FAILED TO REORDER NODES:\n{traceback.format_exc()}", flush=True)
                         result["node_ordering.error"] = str(e).replace("\n", " ")
                         continue
 
@@ -714,7 +714,7 @@ if __name__ == "__main__":
                         result["address_generation.fragmentation"] = fragmentation
                         result["address_generation.peak_mem_usage"] = peak_mem_usage
                     except Exception as e:
-                        print(f"  FAILED TO GENERATE ADDRESSES: {e}", flush=True)
+                        print(f"  FAILED TO GENERATE ADDRESSES:\n{traceback.format_exc()}", flush=True)
                         result["address_generation.error"] = str(e).replace("\n", " ")
                         traceback.print_exc()
 
@@ -752,7 +752,7 @@ if __name__ == "__main__":
                                 break
                     except Exception as e:
                         print(
-                            f"  FAILED TO PLAN REMATERIALIZATION TO SAVE {savings*100}% MEMORY: {e}",
+                            f"  FAILED TO PLAN REMATERIALIZATION TO SAVE {savings*100}% MEMORY:\n{traceback.format_exc()}",
                             flush=True,
                         )
                         result[f"rematerialization.savings_{savings}.error"] = str(
@@ -792,7 +792,7 @@ if __name__ == "__main__":
                                 break
                     except Exception as e:
                         print(
-                            f"  FAILED TO PLAN SPILLING TO SAVE {savings*100}% MEMORY: {e}",
+                            f"  FAILED TO PLAN SPILLING TO SAVE {savings*100}% MEMORY:\n{traceback.format_exc()}",
                             flush=True,
                         )
                         result[f"spilling.savings_{savings}.error"] = str(e).replace(
