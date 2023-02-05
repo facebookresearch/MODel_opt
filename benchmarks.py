@@ -132,7 +132,7 @@ class Benchmark:
             max_seq_len = 512
             text = "Hello world"
             # Repeat text to fill maximum sequence length of model
-            text = text * max_seq_len // len(text.split())
+            text = text * (max_seq_len // len(text.split()))
             input_batch = [text] * batch_size
             inputs = (
                 torchtext.functional.to_tensor(transform(input_batch), padding_value=1),
@@ -179,7 +179,7 @@ class Benchmark:
             max_seq_len = 1024
             text = "Hello world"
             # Repeat text to fill maximum sequence length of model
-            text = text * max_seq_len // len(text.split())
+            text = text * (max_seq_len // len(text.split()))
             input_batch = [text] * batch_size
             inputs = (
                 torchtext.functional.to_tensor(transform(input_batch), padding_value=1),
@@ -198,7 +198,7 @@ class Benchmark:
             max_seq_len = 1024
             text = "Replace me by any text you'd like."
             # Repeat text to fill maximum sequence length of model
-            text = text * max_seq_len // len(text.split())
+            text = text * (max_seq_len // len(text.split()))
             input_batch = [text] * batch_size
             tokens = tokenizer.tokenize(text)
             indexed_tokens = tokenizer.convert_tokens_to_ids(tokens)
