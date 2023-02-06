@@ -205,6 +205,7 @@ class FXOptimizerTest(unittest.TestCase):
             mode="eval",
             tracer_class=CustomTracer,
             cleanup=True,
+            treat_output_as_fake=False,
             return_node_ordering=True,
             return_fx_graph=True,
         )
