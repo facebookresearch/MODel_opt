@@ -113,7 +113,12 @@ class BenchmarksTest(unittest.TestCase):
         )
 
     def testBertBenchmarks(self):
-        self.run_model_benchmarks("bert", additional_args="--generate-addresses")
+        # run each mode/batch size separately to avoid OOM error
+        self.run_model_benchmarks("bert", batch_sizes=[1], modes=["eval"], additional_args="--generate-addresses")
+        self.run_model_benchmarks("bert", batch_sizes=[32], modes=["eval"], additional_args="--generate-addresses")
+        self.run_model_benchmarks("bert", batch_sizes=[1], modes=["train"], additional_args="--generate-addresses")
+        self.run_model_benchmarks("bert", batch_sizes=[32], modes=["train"], additional_args="--generate-addresses")
+
 
     @unittest.skip("fx can't trace the model")
     def testConformerBenchmarks(self):
@@ -125,9 +130,11 @@ class BenchmarksTest(unittest.TestCase):
         )
 
     def testEfficientNetBenchmarks(self):
-        self.run_model_benchmarks(
-            "efficientnet", additional_args="--generate-addresses"
-        )
+        # run each mode/batch size separately to avoid OOM error
+        self.run_model_benchmarks("efficientnet", batch_sizes=[1], modes=["eval"], additional_args="--generate-addresses")
+        self.run_model_benchmarks("efficientnet", batch_sizes=[32], modes=["eval"], additional_args="--generate-addresses")
+        self.run_model_benchmarks("efficientnet", batch_sizes=[1], modes=["train"], additional_args="--generate-addresses")
+        self.run_model_benchmarks("efficientnet", batch_sizes=[32], modes=["train"], additional_args="--generate-addresses")
 
     @unittest.skip("fx can't trace the model")
     def testEmformerBenchmarks(self):
@@ -174,12 +181,16 @@ class BenchmarksTest(unittest.TestCase):
         )
 
     def testTranformerBenchmarks(self):
-        self.run_model_benchmarks("transformer", additional_args="--generate-addresses")
+        self.run_model_benchmarks("transformer", batch_sizes=[1], modes=["eval"], additional_args="--generate-addresses")
+        self.run_model_benchmarks("transformer", batch_sizes=[32], modes=["eval"], additional_args="--generate-addresses")
+        self.run_model_benchmarks("transformer", batch_sizes=[1], modes=["train"], additional_args="--generate-addresses")
+        self.run_model_benchmarks("transformer", batch_sizes=[32], modes=["train"], additional_args="--generate-addresses")
 
     def testTranformerDFLTBenchmarks(self):
-        self.run_model_benchmarks(
-            "transformer_dflt", additional_args="--generate-addresses"
-        )
+        self.run_model_benchmarks("transformer_dflt", batch_sizes=[1], modes=["eval"], additional_args="--generate-addresses")
+        self.run_model_benchmarks("transformer_dflt", batch_sizes=[32], modes=["eval"], additional_args="--generate-addresses")
+        self.run_model_benchmarks("transformer_dflt", batch_sizes=[1], modes=["train"], additional_args="--generate-addresses")
+        self.run_model_benchmarks("transformer_dflt", batch_sizes=[32], modes=["train"], additional_args="--generate-addresses")
 
     def testVGGBenchmarks(self):
         self.run_model_benchmarks("vgg", additional_args="--generate-addresses")
