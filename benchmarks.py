@@ -129,7 +129,11 @@ class Benchmark:
             bert_base = torchtext.models.ROBERTA_BASE_ENCODER
             model = bert_base.get_model()
             transform = bert_base.transform()
-            input_batch = ["Hello world"] * batch_size
+            max_seq_len = 512
+            text = "Hello world"
+            # Repeat text to fill maximum sequence length of model
+            text = text * (max_seq_len // len(text.split()))
+            input_batch = [text] * batch_size
             inputs = (
                 torchtext.functional.to_tensor(transform(input_batch), padding_value=1),
             )
@@ -172,7 +176,11 @@ class Benchmark:
             xlmr_base = torchtext.models.XLMR_BASE_ENCODER
             model = xlmr_base.get_model()
             transform = xlmr_base.transform()
-            input_batch = ["Hello world"] * batch_size
+            max_seq_len = 1024
+            text = "Hello world"
+            # Repeat text to fill maximum sequence length of model
+            text = text * (max_seq_len // len(text.split()))
+            input_batch = [text] * batch_size
             inputs = (
                 torchtext.functional.to_tensor(transform(input_batch), padding_value=1),
             )
@@ -187,7 +195,11 @@ class Benchmark:
                 def forward(self, x):
                     return self.model(x).last_hidden_state
             tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+            max_seq_len = 1024
             text = "Replace me by any text you'd like."
+            # Repeat text to fill maximum sequence length of model
+            text = text * (max_seq_len // len(text.split()))
+            input_batch = [text] * batch_size
             tokens = tokenizer.tokenize(text)
             indexed_tokens = tokenizer.convert_tokens_to_ids(tokens)
             inputs = torch.tensor([indexed_tokens])
@@ -559,7 +571,7 @@ if __name__ == "__main__":
                         infer_trace=args.verify_node_ordering,
                     )
                 except Exception as e:
-                    print(f"  FAILED TO LOAD {model}, SKIPPING TO NEXT MODEL: {e}")
+                    print(f"  FAILED TO LOAD {model}, SKIPPING TO NEXT MODEL:\n{traceback.format_exc()}")
                     result["load_model.error"] = str(e).replace("\n", " ")
                     continue
 
@@ -628,7 +640,7 @@ if __name__ == "__main__":
                                 result["node_ordering.verification"] = "SUCCESS"
                             except Exception as e:
                                 print(
-                                    f"  FAILED TO VERIFY REORDERED NODES: {e}",
+                                    f"  FAILED TO VERIFY REORDERED NODES:\n{traceback.format_exc()}",
                                     flush=True,
                                 )
                                 result["node_ordering.verification"] = "FAIL"
@@ -668,7 +680,7 @@ if __name__ == "__main__":
                                 ] = profiler.peak_reserved_bytes
                             except Exception as e:
                                 print(
-                                    f"  FAILED TO PROFILE REORDERED NODES: {e}",
+                                    f"  FAILED TO PROFILE REORDERED NODES:\n{traceback.format_exc()}",
                                     flush=True,
                                 )
                                 result["node_ordering.profile"] = "FAIL"
@@ -677,7 +689,7 @@ if __name__ == "__main__":
                                 )
 
                     except Exception as e:
-                        print(f"  FAILED TO REORDER NODES: {e}", flush=True)
+                        print(f"  FAILED TO REORDER NODES:\n{traceback.format_exc()}", flush=True)
                         result["node_ordering.error"] = str(e).replace("\n", " ")
                         continue
 
@@ -702,7 +714,7 @@ if __name__ == "__main__":
                         result["address_generation.fragmentation"] = fragmentation
                         result["address_generation.peak_mem_usage"] = peak_mem_usage
                     except Exception as e:
-                        print(f"  FAILED TO GENERATE ADDRESSES: {e}", flush=True)
+                        print(f"  FAILED TO GENERATE ADDRESSES:\n{traceback.format_exc()}", flush=True)
                         result["address_generation.error"] = str(e).replace("\n", " ")
                         traceback.print_exc()
 
@@ -740,7 +752,7 @@ if __name__ == "__main__":
                                 break
                     except Exception as e:
                         print(
-                            f"  FAILED TO PLAN REMATERIALIZATION TO SAVE {savings*100}% MEMORY: {e}",
+                            f"  FAILED TO PLAN REMATERIALIZATION TO SAVE {savings*100}% MEMORY:\n{traceback.format_exc()}",
                             flush=True,
                         )
                         result[f"rematerialization.savings_{savings}.error"] = str(
@@ -780,7 +792,7 @@ if __name__ == "__main__":
                                 break
                     except Exception as e:
                         print(
-                            f"  FAILED TO PLAN SPILLING TO SAVE {savings*100}% MEMORY: {e}",
+                            f"  FAILED TO PLAN SPILLING TO SAVE {savings*100}% MEMORY:\n{traceback.format_exc()}",
                             flush=True,
                         )
                         result[f"spilling.savings_{savings}.error"] = str(e).replace(
