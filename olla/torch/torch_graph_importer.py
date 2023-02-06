@@ -204,7 +204,7 @@ class TorchGraphImporter:
         mode="train",
         optimizer=None,
         loss_fn=None,
-        cleanup=False,
+        cleanup=True,
         profile=None,
         model_return_output=False,
         warm_up_iters=0,
