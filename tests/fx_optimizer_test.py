@@ -10,6 +10,7 @@ import torch
 import torchvision
 
 from olla import training_graph_optimizer, utils
+from olla import simulator
 from olla.torch import torch_graph_importer
 from olla.torch.fx_optimizer import FXOptimizer
 
@@ -147,6 +148,112 @@ class FXOptimizerTest(unittest.TestCase):
         )
         # print(f"final_result: {final_result}")
         self.assertTrue(torch.allclose(initial_result, final_result))
+
+    def testPaperFigure3Schedule(self):
+        class SimpleModule(torch.nn.Module):
+            def __init__(self):
+                super(SimpleModule, self).__init__()
+                self.v1 = V1()
+                self.v2 = V2()
+                self.v3 = V3()
+                self.v4 = V4()
+
+            def forward(self, e1):
+                e3, e2 = self.v1(e1)
+                e4 = self.v3(e2)
+                e5 = self.v2(e3)
+                e6 = self.v4(e4, e5)
+                return e6
+        
+        class V1(torch.nn.Module):
+           def forward(self, e1):
+                e2 = e1
+                e3 = torch.cat([e1, e1])
+                return e3, e2
+        
+        class V2(torch.nn.Module):
+           def forward(self, e3):
+                e5 = e3[0:e3.numel()//4]
+                return e5
+        
+        class V3(torch.nn.Module):
+           def forward(self, e2):
+                e4 = torch.cat([e2, e2, e2])
+                return e4
+        
+        class V4(torch.nn.Module):
+           def forward(self, e4, e5):
+                e6 = torch.cat([e5, e4[0:e4.numel()//6]])
+                return e6
+    
+        # custom tracer to treat V1, V2, V3, and V4 as ops and avoid tracing through them
+        class CustomTracer(torch.fx.Tracer):
+            def is_leaf_module(self, m: torch.nn.Module, module_qualified_name: str) -> bool:
+                return isinstance(m, V1) or isinstance(m, V2) or isinstance(m, V3) or isinstance(m, V4) 
+
+        module = SimpleModule()
+        importer = torch_graph_importer.TorchGraphImporter()
+        input_tensor = torch.randn((10*1024*1024 // 4))
+        (
+            g,
+            pytorch_node_order,
+            fx_graph,
+            fx_to_df_map,
+        ) = importer.import_via_fx(
+            module,
+            input_tensor,
+            mode="eval",
+            tracer_class=CustomTracer,
+            cleanup=True,
+            treat_output_as_fake=False,
+            return_node_ordering=True,
+            return_fx_graph=True,
+        )
+        self.assertTrue(g.is_valid())
+        g.canonicalize()
+        g.constrain_weight_updates()
+        g.constrain_tensor_generators()
+        self.assertTrue(g.is_valid())
+
+        initial_result = module(input_tensor)
+
+        fx_graph.recompile()
+        initial_result = fx_graph.forward(
+            input_tensor,
+        )
+        print(fx_graph)
+        # print(f"initial_result: {initial_result}")
+
+        node_order = str([node for node in fx_graph.graph.nodes])
+        # print(f"NODES INITIAL = {node_order}", flush=True)
+
+        g.dump("/tmp/graph.dot")
+        s = simulator.Simulator(g)
+        print("pytorch_node_order: ", pytorch_node_order)
+        simulated_peak_mem_usage, mem_per_timestep = s.Simulate(pytorch_node_order)
+        print("simulated_peak_mem_usage: ", simulated_peak_mem_usage)
+        print("mem_per_timestep: ", mem_per_timestep)
+
+        s = training_graph_optimizer.Scheduler(g)
+        summary, schedule, mem_loc = s.ComputeOptimalSchedule(
+            allow_swaps=False,
+            max_spills=0,
+        )
+        # print(f"SCHEDULER = {schedule}")
+        node_order_optimized = utils.extract_node_ordering(g, schedule)
+        assert(utils.validate_node_ordering(g, schedule))
+        print(f"node_order_optimized: {node_order_optimized}")
+
+        fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
+        fx_opt.Reorder(node_order_optimized)
+        fx_graph_opt = fx_opt.fx_trace
+        print(fx_graph_opt)
+        final_result = fx_graph_opt.forward(
+            input_tensor,
+        )
+        # print(f"final_result: {final_result}")
+        self.assertTrue(torch.allclose(initial_result, final_result))
+
 
     def testSimpleTrainSchedule(self):
         class SimpleModule(torch.nn.Module):

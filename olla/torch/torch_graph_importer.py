@@ -101,10 +101,14 @@ class TorchGraphImporter:
         *inputs,
         mode="eval",
         tracer_class=DeepTracer,
+        cleanup=False,
+        treat_output_as_fake=True,
         profile=None,
         warm_up_iters=0,
         profile_iters=1,
         return_node_ordering=False,
+        return_fx_graph=False,
+        verbose=True,
     ):
         self.assert_type(mode)
         assert mode == "eval", "Currently `import_via_fx` only supports eval mode"
@@ -116,10 +120,14 @@ class TorchGraphImporter:
         return self.import_from_fx(
             fx_trace,
             *inputs,
+            cleanup=cleanup,
+            treat_output_as_fake=treat_output_as_fake,
             profile=profile,
             warm_up_iters=warm_up_iters,
             profile_iters=profile_iters,
             return_node_ordering=return_node_ordering,
+            return_fx_graph=return_fx_graph,
+            verbose=verbose,
         )
 
     def import_via_functorch(
@@ -127,10 +135,13 @@ class TorchGraphImporter:
         model,
         *inputs,
         mode="train",
+        cleanup=False,
         profile=None,
         warm_up_iters=0,
         profile_iters=1,
         return_node_ordering=False,
+        return_fx_graph=False,
+        verbose=True,
     ):
         self.assert_type(mode)
         # obtain the forward and backward graphs of the model
@@ -162,20 +173,26 @@ class TorchGraphImporter:
                 fx_trace,
                 *inputs,
                 *outputs,
+                cleanup=cleanup,
                 profile=profile,
                 warm_up_iters=warm_up_iters,
                 profile_iters=profile_iters,
                 return_node_ordering=return_node_ordering,
+                return_fx_graph=return_fx_graph,
+                verbose=verbose,
             )
         elif mode == "eval":
             fx_trace = fx_trace_fwd
             return self.import_from_fx(
                 fx_trace,
                 *inputs,
+                treat_output_as_fake=True,
                 profile=profile,
                 warm_up_iters=warm_up_iters,
                 profile_iters=profile_iters,
                 return_node_ordering=return_node_ordering,
+                return_fx_graph=return_fx_graph,
+                verbose=verbose,
             )
         else:
             raise ValueError("unsupported import mode `", mode, "`")
@@ -187,6 +204,7 @@ class TorchGraphImporter:
         mode="train",
         optimizer=None,
         loss_fn=None,
+        cleanup=True,
         profile=None,
         model_return_output=False,
         warm_up_iters=0,
@@ -241,8 +259,9 @@ class TorchGraphImporter:
             *inputs,
             *dict(model.named_parameters()).values(),
             *dict(model.named_buffers()).values(),
-            cleanup=True,
+            cleanup=cleanup,
             shape_inference=False,
+            treat_output_as_fake=True,
             profile=profile,
             warm_up_iters=warm_up_iters,
             profile_iters=profile_iters,
@@ -256,6 +275,7 @@ class TorchGraphImporter:
         model,
         *inputs,
         mode="eval",
+        cleanup=False,
         profile=None,
         warm_up_iters=0,
         profile_iters=1,
@@ -271,7 +291,9 @@ class TorchGraphImporter:
         return self.import_from_fx(
             self.fx_trace,
             *inputs,
+            cleanup=cleanup,
             shape_inference=False,
+            treat_output_as_fake=True,
             profile=profile,
             warm_up_iters=warm_up_iters,
             profile_iters=profile_iters,
@@ -285,6 +307,7 @@ class TorchGraphImporter:
         *inputs,
         cleanup=False,
         shape_inference=True,
+        treat_output_as_fake=True,
         profile=None,
         warm_up_iters=0,
         profile_iters=1,
@@ -332,7 +355,9 @@ class TorchGraphImporter:
                 or fx_node.name.startswith("buffers_")
                 else fx_node.op
             )
-            if op_type != "output":
+            if treat_output_as_fake and op_type == "output":
+                pass
+            else:
                 df_node = df_graph.add_node(fx_node.name, op_type)
                 fx2df_node_map[fx_node] = df_node
 
@@ -593,18 +618,21 @@ class TorchGraphImporter:
     def bypass_and_delete_getitem_node(self, df_graph, node):
         assert len(node.fanin) == 1
         edge_in = node.fanin[0]
-        assert df_graph.get_size(edge_in) == 0
-        sources = edge_in.sources
 
-        for edge_out in node.fanout:
-            if len(edge_out.sinks) == 0:
-                continue
-            size = df_graph.get_size(edge_out)
-            df_graph.add_edge(
-                sources, edge_out.sinks, size, name=edge_out.name + "_opt"
-            )
+        # only remove if input tensor size is 0
+        # if input tensor is size > 0, it probably means that getitem is extracting a portion of another tensor, so we should keep it.
+        if df_graph.get_size(edge_in) == 0:
+            sources = edge_in.sources
 
-        df_graph.delete_node(node)
+            for edge_out in node.fanout:
+                if len(edge_out.sinks) == 0:
+                    continue
+                size = df_graph.get_size(edge_out)
+                df_graph.add_edge(
+                    sources, edge_out.sinks, size, name=edge_out.name + "_opt"
+                )
+
+            df_graph.delete_node(node)
 
     def bypass_and_delete_meta_node(self, df_graph, node):
         assert len(node.fanin) == 1
