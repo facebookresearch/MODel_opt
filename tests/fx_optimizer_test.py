@@ -167,23 +167,23 @@ class FXOptimizerTest(unittest.TestCase):
         
         class V1(torch.nn.Module):
            def forward(self, e1):
-                e2 = e1
-                e3 = torch.cat([e1, e1])
+                e2 = e1.sin()
+                e3 = torch.cat([e1.cos(), e1.relu()])
                 return e3, e2
         
         class V2(torch.nn.Module):
            def forward(self, e3):
-                e5 = e3[0:e3.numel()//4]
+                e5 = e3.exp()[0:e3.numel()//4]
                 return e5
         
         class V3(torch.nn.Module):
            def forward(self, e2):
-                e4 = torch.cat([e2, e2, e2])
+                e4 = torch.cat([e2.tan(), e2.tanh(), e2.tanh()])
                 return e4
         
         class V4(torch.nn.Module):
            def forward(self, e4, e5):
-                e6 = torch.cat([e5, e4[0:e4.numel()//6]])
+                e6 = torch.cat([e5.sinh(), e4.sigmoid()[0:e4.numel()//6]])
                 return e6
     
         # custom tracer to treat V1, V2, V3, and V4 as ops and avoid tracing through them
