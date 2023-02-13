@@ -11,7 +11,7 @@ import torchvision
 
 from olla import training_graph_optimizer, utils
 from olla import simulator
-from olla.torch import torch_graph_importer
+from olla.torch import fx_profiler, torch_graph_importer
 from olla.torch.fx_optimizer import FXOptimizer
 
 
@@ -234,6 +234,25 @@ class FXOptimizerTest(unittest.TestCase):
         print("simulated_peak_mem_usage: ", simulated_peak_mem_usage)
         print("mem_per_timestep: ", mem_per_timestep)
 
+        # Profile peak memory allocated before node ordering
+        input_tensor.cuda()
+        module.cuda()
+        torch.cuda.empty_cache()
+        profiler = fx_profiler.ProfilingInterpreter(
+            fx_graph,
+            profile_time=False,
+            profile_memory=True,
+            warm_up_iters=50,
+            profile_iters=100,
+        )
+        with torch.no_grad():
+            profiler.run(
+                input_tensor,
+                *dict(module.named_parameters()).values(),
+                *dict(module.named_buffers()).values(),
+            )
+        print(f"Profiled allocated memory at peak before node ordering : {profiler.get_allocated_mem_at_peak()}")
+
         s = training_graph_optimizer.Scheduler(g)
         summary, schedule, mem_loc = s.ComputeOptimalSchedule(
             allow_swaps=False,
@@ -253,6 +272,23 @@ class FXOptimizerTest(unittest.TestCase):
         )
         # print(f"final_result: {final_result}")
         self.assertTrue(torch.allclose(initial_result, final_result))
+
+        # Profile peak memory allocated after node ordering
+        torch.cuda.empty_cache()
+        profiler = fx_profiler.ProfilingInterpreter(
+            fx_graph_opt,
+            profile_time=False,
+            profile_memory=True,
+            warm_up_iters=50,
+            profile_iters=100,
+        )
+        with torch.no_grad():
+            profiler.run(
+                input_tensor,
+                *dict(module.named_parameters()).values(),
+                *dict(module.named_buffers()).values(),
+            )
+        print(f"Profile allocated memory at peak after node ordering : {profiler.get_allocated_mem_at_peak()}")
 
 
     def testSimpleTrainSchedule(self):
