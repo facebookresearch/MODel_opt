@@ -42,6 +42,7 @@ class ProfilingInterpreter(torch.fx.Interpreter):
         self.table = None
         self.max_mem_fragmentation = None
         self.peak_reserved_bytes = None
+        self.allocated_mem_at_peak = None
 
     def run(self, *args) -> Any:
         # reset profile results and status variables
