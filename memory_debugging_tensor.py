@@ -213,8 +213,13 @@ class V4(torch.nn.Module):
     def forward(self, e4, e5):
         e6 = torch.cat([e5.sinh(), e4.sigmoid()[0:e4.numel()//6]])
         return e6
+
+model = SimpleModule()
+
+from torch.fx import symbolic_trace
+model = symbolic_trace(model)
     
-# run_one_model(SimpleModule(), torch.rand(10*1024*1024 // 4, device="cuda"))
+# run_one_model(model, torch.rand(10*1024*1024 // 4, device="cuda"))
 
 input = torch.rand(10*1024*1024 // 4).cuda()
 torch.cuda.memory._record_memory_history(True,
@@ -224,7 +229,7 @@ torch.cuda.memory._record_memory_history(True,
         # record stack information for the trace events
         trace_alloc_record_context=True)
 
-model = SimpleModule().cuda()
+model = model.cuda()
 model(input)
 
 from pprint import pprint
