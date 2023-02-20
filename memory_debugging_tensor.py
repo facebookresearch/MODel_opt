@@ -195,29 +195,30 @@ class SimpleModule(torch.nn.Module):
 
 class V1(torch.nn.Module):
     def forward(self, e1):
-        e2 = e1.sin()
-        e3 = torch.cat([e1.cos(), e1.relu()])
+        e2 = e1.clone()
+        e3 = torch.cat([e1, e1])
         return e3, e2
 
 class V2(torch.nn.Module):
     def forward(self, e3):
-        e5 = e3.exp()[0:e3.numel()//4]
+        e5 = e3[0::4].clone()
         return e5
 
 class V3(torch.nn.Module):
     def forward(self, e2):
-        e4 = torch.cat([e2.tan(), e2.tanh(), e2.tanh()])
+        e4 = torch.cat([e2, e2, e2])
         return e4
 
 class V4(torch.nn.Module):
     def forward(self, e4, e5):
-        e6 = torch.cat([e5.sinh(), e4.sigmoid()[0:e4.numel()//6]])
+        e6 = torch.cat([e5, e4[::6]])
         return e6
 
 model = SimpleModule()
 
 from torch.fx import symbolic_trace
 model = symbolic_trace(model)
+print(model.code)
     
 # run_one_model(model, torch.rand(10*1024*1024 // 4, device="cuda"))
 
@@ -234,6 +235,6 @@ model(input)
 
 from pprint import pprint
 snapshot = torch.cuda.memory._snapshot()
-pprint(snapshot)
+# pprint(snapshot)
 from pickle import dump
-dump(snapshot, open('snapshot1.pickle', 'wb'))
+dump(snapshot, open('snapshot.pickle', 'wb'))
