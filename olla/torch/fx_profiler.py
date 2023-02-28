@@ -79,14 +79,15 @@ class ProfilingInterpreter(torch.fx.Interpreter):
                 return_val = super().run_node(n)
 
             if self.profile_memory and not self.warm_up:
-                memory_stats = torch.cuda.memory_stats()
-                assert (
-                    memory_stats
-                ), "torch.cuda.memory_stats() returned an empty result. This could be because the model or tensors were not transferred to GPU. Make sure to call `model.cuda()` and `input = input.cuda()` on all the model's inputs."
                 self.node_profiles.setdefault(n, OrderedDict())
-                for k in memory_stats.keys():
-                    self.node_profiles[n].setdefault(k, [])
-                    self.node_profiles[n][k].append(memory_stats[k])
+
+                self.node_profiles[n].setdefault("memory_allocated", [])
+                memory_allocated = torch.cuda.memory_allocated()
+                self.node_profiles[n]["memory_allocated"].append(memory_allocated)
+
+                self.node_profiles[n].setdefault("memory_reserved", [])
+                memory_reserved = torch.cuda.memory_reserved()
+                self.node_profiles[n]["memory_reserved"].append(memory_reserved)
         except RuntimeError:
             pass  # warnings.warn(f"Unable to profile node {n.name}", RuntimeWarning)
 
@@ -106,14 +107,14 @@ class ProfilingInterpreter(torch.fx.Interpreter):
             row["Op name"] = node.name
             row["Op type"] = node.op
             for name, values in profiles.items():
-                if name == "allocated_bytes.all.current":
+                if name == "memory_allocated":
                     continue
-                elif name == "reserved_bytes.all.current":
+                elif name == "memory_reserved":
                     imax = np.argmax(np.asarray(values))
                     max_required_memory = values[imax]
-                    allocated_mem_at_max = profiles["allocated_bytes.all.current"][imax]
-                    row["reserved_bytes.all.current"] = max_required_memory
-                    row["allocated_bytes.all.current"] = allocated_mem_at_max
+                    allocated_mem_at_max = profiles["memory_allocated"][imax]
+                    row["memory_reserved"] = max_required_memory
+                    row["memory_allocated"] = allocated_mem_at_max
                 else:
                     row[name] = statistics.mean(values)
             self.table.loc[len(self.table), row.keys()] = row.values()
@@ -140,10 +141,9 @@ class ProfilingInterpreter(torch.fx.Interpreter):
         if self.table is None:
             self._generate_summary()
 
-        idx = self.table["reserved_bytes.all.current"].idxmax()
-        row = self.table.iloc[idx]
-        self.allocated_mem_at_peak = row["allocated_bytes.all.current"]
-        self.peak_reserved_bytes = row["reserved_bytes.all.current"]
+        row = self.table.sort_values(["memory_reserved", "memory_allocated"], ascending=False).iloc[0]
+        self.allocated_mem_at_peak = row["memory_allocated"]
+        self.peak_reserved_bytes = row["memory_reserved"]
         self.max_mem_fragmentation = (
             self.peak_reserved_bytes - self.allocated_mem_at_peak
         ) / self.peak_reserved_bytes
