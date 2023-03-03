@@ -184,17 +184,17 @@ class Benchmark:
             inputs = (
                 torchtext.functional.to_tensor(transform(input_batch), padding_value=1),
             )
-        elif model_name == "opt":
+        elif model_name.startswith("opt"):
             from transformers import AutoTokenizer, OPTModel
             class OPTWrapper(torch.nn.Module):
                 def __init__(self):
                     super(OPTWrapper, self).__init__()
-                    self.model = OPTModel.from_pretrained("facebook/opt-350m")
+                    self.model = OPTModel.from_pretrained(f"facebook/{model_name}")
 
                 def forward(self, input_ids, attention_mask):
                     return self.model(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
 
-            tokenizer = AutoTokenizer.from_pretrained("facebook/opt-350m")
+            tokenizer = AutoTokenizer.from_pretrained(f"facebook/{model_name}")
             max_seq_len = 512 # 2048
             text = "Replace me by any text you'd like."
             # Repeat text to fill maximum sequence length of model
