@@ -405,7 +405,8 @@ class TorchGraphImporter:
                         or fanout.name.startswith("getitem_")
                         or fanout.name == "lift_fresh_copy"
                         or fanout.name.startswith("lift_fresh_copy_")
-                    )
+                        or fanout.name == "output"
+                    ), f"fannout name is {fanout.name}"
 
             if fx_node not in fx2df_node_map:
                 continue

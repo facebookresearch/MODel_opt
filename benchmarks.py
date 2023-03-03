@@ -184,6 +184,25 @@ class Benchmark:
             inputs = (
                 torchtext.functional.to_tensor(transform(input_batch), padding_value=1),
             )
+        elif model_name == "opt":
+            from transformers import AutoTokenizer, OPTModel
+            class OPTWrapper(torch.nn.Module):
+                def __init__(self):
+                    super(OPTWrapper, self).__init__()
+                    self.model = OPTModel.from_pretrained("facebook/opt-350m")
+
+                def forward(self, input_ids, attention_mask):
+                    return self.model(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
+
+            tokenizer = AutoTokenizer.from_pretrained("facebook/opt-350m")
+            max_seq_len = 512 # 2048
+            text = "Replace me by any text you'd like."
+            # Repeat text to fill maximum sequence length of model
+            text = text * (max_seq_len // len(text.split()))
+            input_batch = [text] * batch_size
+            inputs = list(tokenizer(text, return_tensors="pt").values())
+            model = OPTWrapper()
+            model(*inputs)
         elif model_name == "gpt2":
             # TODO: Fix error when loading GPT2
             from transformers import GPT2Tokenizer, GPT2Model
