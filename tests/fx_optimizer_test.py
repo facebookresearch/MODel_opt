@@ -11,9 +11,10 @@ import torchvision
 
 from olla import training_graph_optimizer, utils
 from olla import simulator
-from olla.torch import torch_graph_importer
+from olla.torch import fx_profiler, torch_graph_importer
 from olla.torch.fx_optimizer import FXOptimizer
 
+MB = 2**20
 
 class FXOptimizerTest(unittest.TestCase):
     def setUp(self):
@@ -164,26 +165,26 @@ class FXOptimizerTest(unittest.TestCase):
                 e5 = self.v2(e3)
                 e6 = self.v4(e4, e5)
                 return e6
-        
+
         class V1(torch.nn.Module):
-           def forward(self, e1):
-                e2 = e1
+            def forward(self, e1):
+                e2 = e1.clone()
                 e3 = torch.cat([e1, e1])
                 return e3, e2
-        
+
         class V2(torch.nn.Module):
-           def forward(self, e3):
-                e5 = e3[0:e3.numel()//4]
+            def forward(self, e3):
+                e5 = e3[0::4].clone()
                 return e5
-        
+
         class V3(torch.nn.Module):
-           def forward(self, e2):
+            def forward(self, e2):
                 e4 = torch.cat([e2, e2, e2])
                 return e4
-        
+
         class V4(torch.nn.Module):
-           def forward(self, e4, e5):
-                e6 = torch.cat([e5, e4[0:e4.numel()//6]])
+            def forward(self, e4, e5):
+                e6 = torch.cat([e5, e4[::6]])
                 return e6
     
         # custom tracer to treat V1, V2, V3, and V4 as ops and avoid tracing through them
@@ -191,9 +192,9 @@ class FXOptimizerTest(unittest.TestCase):
             def is_leaf_module(self, m: torch.nn.Module, module_qualified_name: str) -> bool:
                 return isinstance(m, V1) or isinstance(m, V2) or isinstance(m, V3) or isinstance(m, V4) 
 
-        module = SimpleModule()
+        module = SimpleModule().cuda()
         importer = torch_graph_importer.TorchGraphImporter()
-        input_tensor = torch.randn((10*1024*1024 // 4))
+        input_tensor = torch.randn((10*1024*1024 // 4)).cuda()
         (
             g,
             pytorch_node_order,
@@ -234,6 +235,23 @@ class FXOptimizerTest(unittest.TestCase):
         print("simulated_peak_mem_usage: ", simulated_peak_mem_usage)
         print("mem_per_timestep: ", mem_per_timestep)
 
+        # Profile peak memory allocated before node ordering
+        torch.cuda.empty_cache()
+        profiler = fx_profiler.ProfilingInterpreter(
+            fx_graph,
+            profile_time=False,
+            profile_memory=True,
+            warm_up_iters=50,
+            profile_iters=100,
+        )
+        with torch.no_grad():
+            profiler.run(
+                input_tensor,
+                *dict(module.named_parameters()).values(),
+                *dict(module.named_buffers()).values(),
+            )
+        print(f"Profiled allocated memory at peak before node ordering : {profiler.get_allocated_mem_at_peak() / MB}")
+
         s = training_graph_optimizer.Scheduler(g)
         summary, schedule, mem_loc = s.ComputeOptimalSchedule(
             allow_swaps=False,
@@ -254,6 +272,22 @@ class FXOptimizerTest(unittest.TestCase):
         # print(f"final_result: {final_result}")
         self.assertTrue(torch.allclose(initial_result, final_result))
 
+        # Profile peak memory allocated after node ordering
+        torch.cuda.empty_cache()
+        profiler = fx_profiler.ProfilingInterpreter(
+            fx_graph_opt,
+            profile_time=False,
+            profile_memory=True,
+            warm_up_iters=50,
+            profile_iters=100,
+        )
+        with torch.no_grad():
+            profiler.run(
+                input_tensor,
+                *dict(module.named_parameters()).values(),
+                *dict(module.named_buffers()).values(),
+            )
+        print(f"Profile allocated memory at peak after node ordering : {profiler.get_allocated_mem_at_peak() / MB}")
 
     def testSimpleTrainSchedule(self):
         class SimpleModule(torch.nn.Module):
