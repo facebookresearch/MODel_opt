@@ -47,6 +47,7 @@ class ProfilingInterpreter(torch.fx.Interpreter):
     def run(self, *args) -> Any:
         # reset profile results and status variables
         self._reset()
+        torch.cuda.reset_peak_memory_stats()
 
         for _ in range(self.warm_up_iters):
             # running without profiling
@@ -88,6 +89,8 @@ class ProfilingInterpreter(torch.fx.Interpreter):
                 self.node_profiles[n].setdefault("memory_reserved", [])
                 memory_reserved = torch.cuda.memory_reserved()
                 self.node_profiles[n]["memory_reserved"].append(memory_reserved)
+
+                torch.cuda.reset_peak_memory_stats()
         except RuntimeError:
             pass  # warnings.warn(f"Unable to profile node {n.name}", RuntimeWarning)
 
