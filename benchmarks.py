@@ -498,6 +498,14 @@ BENCHMARKS = {
     "vgg19": ["eval", "train"],
     "vit": ["eval", "train"],
     "xlmr": ["eval", "train"],
+    "opt-125m": ["eval", "train"],
+    "opt-350m": ["eval", "train"],
+    "opt-1.3b": ["eval", "train"],
+    "opt-2.7b": ["eval", "train"],
+    "opt-6.7b": ["eval", "train"],
+    "opt-13b": ["eval", "train"],
+    "opt-30b": ["eval", "train"],
+    "opt-66b": ["eval", "train"],
 }
 
 
