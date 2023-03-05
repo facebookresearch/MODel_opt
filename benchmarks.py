@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
+import logging
 import time
 import traceback
 from collections import OrderedDict
@@ -514,10 +515,22 @@ parser.add_argument("--spilling", action="store_true")
 
 parser.add_argument("--log-path", "--log_path", default="/tmp/opt4ml_benchmarks.csv")
 parser.add_argument("--append-log", action="store_true")
+parser.add_argument(
+    '-d', '--debug',
+    help="Log debugging statements",
+    action="store_const", dest="log_level", const=logging.DEBUG,
+    default=logging.WARNING,
+)
+parser.add_argument(
+    '-v', '--verbose',
+    help="Log verbose info",
+    action="store_const", dest="log_level", const=logging.INFO,
+)
 # fmt: on
 
 if __name__ == "__main__":
     args = parser.parse_args()
+    logging.basicConfig(level=args.log_level)
     print(f"Running with args {args}")
 
     b = Benchmark()
