@@ -25,6 +25,9 @@ from olla.torch.fx_optimizer import FXOptimizer
 # Fix the environment to enable graphviz to work.
 # del os.environ["LD_LIBRARY_PATH"]
 
+KB = 2**10
+MB = 2**20
+GB = 2**30
 
 class Benchmark:
     def load_model(
@@ -581,15 +584,15 @@ if __name__ == "__main__":
                 )
                 if args.memory_profile:
                     print(
-                        f"PROFILED MAX MEMORY FRAGMENTATION IS {graph.max_mem_fragmentation*100}% AND PROFILED PEAK MEMORY IS {graph.peak_reserved_bytes/(2**30)} GB, PROFILED ALLOCATED MEMORY AT PEAK IS {graph.allocated_mem_at_peak/(2**30)} GB"
+                        f"PROFILED MAX MEMORY FRAGMENTATION IS {graph.max_mem_fragmentation:%} AND PROFILED PEAK MEMORY IS {graph.peak_reserved_bytes/GB:.4f} GB, PROFILED ALLOCATED MEMORY AT PEAK IS {graph.allocated_mem_at_peak/GB:.4f} GB"
                     )
                     result[
                         "profile.max_mem_fragmentation"
                     ] = graph.max_mem_fragmentation
-                    result["profile.peak_mem_usage"] = graph.peak_reserved_bytes
+                    result["profile.peak_mem_usage"] = graph.peak_reserved_bytes / GB
                     result[
                         "profile.allocated_mem_at_peak"
-                    ] = graph.allocated_mem_at_peak
+                    ] = graph.allocated_mem_at_peak / GB
 
                 if not args.skip_simulation:
                     simulated_peak_mem_usage, _ = b.run_simulation(
@@ -597,10 +600,10 @@ if __name__ == "__main__":
                         pt_node_order,
                     )
                     print(
-                        f"  SIMULATED PEAK MEM USAGE IS {simulated_peak_mem_usage / 2**30} GB",
+                        f"  SIMULATED PEAK MEM USAGE IS {simulated_peak_mem_usage / GB:.4f} GB",
                         flush=True,
                     )
-                    result["simulated.peak_mem_usage"] = simulated_peak_mem_usage
+                    result["simulated.peak_mem_usage"] = simulated_peak_mem_usage / GB
 
                 if args.profile_alloc_time:
                     torch.cuda.empty_cache()
@@ -626,12 +629,12 @@ if __name__ == "__main__":
                         ) = b.run_node_ordering(graph, fx_graph, fx_to_df_map)
 
                         print(
-                            f"  REORDERED NODES IN {solver_time:.1f}s. SIMULATED PEAK MEMORY USAGE WAS {peak_mem_usage / (2**30)} GB (SAVED {(simulated_peak_mem_usage - peak_mem_usage) / simulated_peak_mem_usage * 100:.1f}%)",
+                            f"  REORDERED NODES IN {solver_time:.1f}s. SIMULATED PEAK MEMORY USAGE WAS {peak_mem_usage / GB:.4f} GB (SAVED {(simulated_peak_mem_usage - peak_mem_usage) / simulated_peak_mem_usage:%})",
                             flush=True,
                         )
 
                         result["node_ordering.solver_time"] = solver_time
-                        result["node_ordering.peak_mem_usage"] = peak_mem_usage
+                        result["node_ordering.peak_mem_usage"] = peak_mem_usage / GB
 
                         if args.verify_node_ordering:
                             print("  INFER FX TRACE AFTER NODE REORDERING", flush=True)
@@ -670,14 +673,17 @@ if __name__ == "__main__":
                                 result["node_ordering.profile"] = "SUCCESS"
 
                                 print(
-                                    f"AFTER NODE ORDERING: PROFILED MAX MEMORY FRAGMENTATION IS {profiler.get_max_mem_fragmentation()*100}% AND PROFILED PEAK MEMORY IS {profiler.get_peak_reserved_bytes()/(2**30)} GB, PROFILED ALLOCATED MEMORY AT PEAK IS {profiler.get_allocated_mem_at_peak()/(2**30)} GB"
+                                    f"AFTER NODE ORDERING: PROFILED MAX MEMORY FRAGMENTATION IS {profiler.get_max_mem_fragmentation():%} AND PROFILED PEAK MEMORY IS {profiler.get_peak_reserved_bytes()/GB:.4f} GB, PROFILED ALLOCATED MEMORY AT PEAK IS {profiler.get_allocated_mem_at_peak()/GB:.4f} GB"
                                 )
                                 result[
                                     "node_ordering.profile.max_mem_fragmentation"
                                 ] = profiler.max_mem_fragmentation
                                 result[
                                     "node_ordering.profile.peak_reserved_bytes"
-                                ] = profiler.peak_reserved_bytes
+                                ] = profiler.peak_reserved_bytes / GB
+                                result[
+                                    "node_ordering.profile.allocated_mem_at_peak"
+                                ] = profiler.allocated_mem_at_peak / GB
                             except Exception as e:
                                 print(
                                     f"  FAILED TO PROFILE REORDERED NODES:\n{traceback.format_exc()}",
@@ -707,12 +713,12 @@ if __name__ == "__main__":
                             solver_time,
                         ) = b.run_address_generation(graph, node_ordering)
                         print(
-                            f"  GENERATED ADDRESSES IN {solver_time:.1f}s. PEAK MEM USAGE WAS {peak_mem_usage / (2**30)} GB, FRAGMENTATION WAS {fragmentation * 100:.1f}%)",
+                            f"  GENERATED ADDRESSES IN {solver_time:.1f}s. PEAK MEM USAGE WAS {peak_mem_usage / GB:.4f} GB, FRAGMENTATION WAS {fragmentation:%}",
                             flush=True,
                         )
                         result["address_generation.solver_time"] = solver_time
                         result["address_generation.fragmentation"] = fragmentation
-                        result["address_generation.peak_mem_usage"] = peak_mem_usage
+                        result["address_generation.peak_mem_usage"] = peak_mem_usage / GB
                     except Exception as e:
                         print(f"  FAILED TO GENERATE ADDRESSES:\n{traceback.format_exc()}", flush=True)
                         result["address_generation.error"] = str(e).replace("\n", " ")
@@ -739,7 +745,7 @@ if __name__ == "__main__":
                                 graph, memory_budget
                             )
                             print(
-                                f"  PLANNED REMATERIALIZATION TO SAVE {savings*100}% MEMORY IN {solver_time:.1f}s. INCREASED MODEL LATENCY BY {overhead*100:.3f}%)",
+                                f"  PLANNED REMATERIALIZATION TO SAVE {savings:%} MEMORY IN {solver_time:.1f}s. INCREASED MODEL LATENCY BY {overhead:%})",
                                 flush=True,
                             )
                             result[
@@ -752,7 +758,7 @@ if __name__ == "__main__":
                                 break
                     except Exception as e:
                         print(
-                            f"  FAILED TO PLAN REMATERIALIZATION TO SAVE {savings*100}% MEMORY:\n{traceback.format_exc()}",
+                            f"  FAILED TO PLAN REMATERIALIZATION TO SAVE {savings:%} MEMORY:\n{traceback.format_exc()}",
                             flush=True,
                         )
                         result[f"rematerialization.savings_{savings}.error"] = str(
@@ -781,7 +787,7 @@ if __name__ == "__main__":
                                 done = True
                             overhead, solver_time = b.run_spilling(graph, memory_budget)
                             print(
-                                f"  PLANNED SPILLING TO SAVE {savings*100}% MEMORY IN {solver_time:.1f}s. INCREASED MODEL LATENCY BY {overhead*100:.3f}%)",
+                                f"  PLANNED SPILLING TO SAVE {savings:%} MEMORY IN {solver_time:.1f}s. INCREASED MODEL LATENCY BY {overhead:%})",
                                 flush=True,
                             )
                             result[f"spilling.savings_{savings}.overhead"] = overhead
@@ -792,7 +798,7 @@ if __name__ == "__main__":
                                 break
                     except Exception as e:
                         print(
-                            f"  FAILED TO PLAN SPILLING TO SAVE {savings*100}% MEMORY:\n{traceback.format_exc()}",
+                            f"  FAILED TO PLAN SPILLING TO SAVE {savings:%} MEMORY:\n{traceback.format_exc()}",
                             flush=True,
                         )
                         result[f"spilling.savings_{savings}.error"] = str(e).replace(
@@ -807,4 +813,5 @@ if __name__ == "__main__":
                     mode="a" if args.append_log else "w",
                     header=not args.append_log,
                     index=False,
+                    float_format="%.4g",
                 )
