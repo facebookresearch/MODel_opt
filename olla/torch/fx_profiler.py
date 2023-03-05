@@ -115,7 +115,7 @@ class ProfilingInterpreter(torch.fx.Interpreter):
                     row["allocated_bytes.all.current"] = allocated_mem_at_max
                 else:
                     row[name] = statistics.mean(values)
-            self.table = pd.concat([self.table, pd.DataFrame.from_records([row])], ignore_index=True)
+            self.table.loc[len(self.table), row.keys()] = row.values()
 
         # ensure that the first 3 columns are: Op name, Op type, runtime
         self.table.insert(0, "Op name", self.table.pop("Op name"))
