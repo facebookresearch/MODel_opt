@@ -5,14 +5,16 @@
 # LICENSE file in the root directory of this source tree.
 
 import itertools
+import logging
 import math
+import time
 import sys
 from collections import defaultdict, OrderedDict
 
 import intervaltree
 from olla import dataflow_graph, ilp_solver, utils
 
-
+logger = logging.getLogger(__name__)
 class Scheduler:
     def __init__(
         self,
@@ -114,7 +116,7 @@ class Scheduler:
                     assert alap[snk] > alap[n]
                     ub = max(ub, alap[snk])
                 makespan[e] = (lb, ub)
-                # print(e.name + "[" + str(lb) + ", " + str(up) + "]")
+                logger.debug(e.name + "[" + str(lb) + ", " + str(ub) + "]")
         return makespan
 
     def _GCD(self, values):
@@ -290,7 +292,7 @@ class Scheduler:
                     assert isinstance(n, dataflow_graph.Node)
                     name = n.name
                 if name not in self.graph.nodes:
-                    print(
+                    logger.warning(
                         "Invalid schedule: node "
                         + name
                         + " does not exist in the graph"
@@ -308,7 +310,7 @@ class Scheduler:
 
         if self.timestep_factor < 1 and self.longest_path_length > num_timesteps:
             # Make sure we have enough timesteps to run the longest path
-            print(
+            logger.info(
                 f"Adjusting num_timesteps to {self.longest_path_length} to ensure there are enough steps to run the longest path"
             )
             num_timesteps = self.longest_path_length
@@ -331,7 +333,7 @@ class Scheduler:
             int_feas_tol = min(1e-5, 1.0 / max_address)
             int_feas_tol = max(1e-9, int_feas_tol)
             if 1.0 / max_address > 1e-5:
-                print(f"Tightened IntFeasTol to {int_feas_tol}")
+                logger.info(f"Tightened IntFeasTol to {int_feas_tol}")
 
         solver = ilp_solver.ILPSolver(
             timeout_s=self.timeout,
@@ -711,7 +713,7 @@ class Scheduler:
             max_mem = 0
 
             if manual_allocation_possible:
-                print("STARTING TENSOR ASSIGNMENT")
+                logger.debug("STARTING TENSOR ASSIGNMENT")
                 min_start = 0
                 max_end = num_timesteps
                 base_address = 0
@@ -742,7 +744,7 @@ class Scheduler:
                         name=f"{utils.get_linenumber()}_force_{next_step.name}_at_{base_address}",
                     )
                     fixed_locations[next_step] = base_address
-                    print(
+                    logger.debug(
                         f"   TENSOR {next_step.name}, min start {min_start}, max_end {max_end} size {next_step.size} located at {base_address}"
                     )
 
@@ -759,12 +761,12 @@ class Scheduler:
                     else:
                         span = makespan[t]
                         max_address_used = 0
-                        # print(f"Querying intervaltree {span[0]} {span[1]+1}")
+                        logger.debug(f"Querying intervaltree {span[0]} {span[1]+1}")
                         for interval in mem_used.overlap(span[0], span[1] + 1):
-                            # print(f"address {interval.data} used")
+                            logger.debug(f"address {interval.data} used")
                             max_address_used = max(max_address_used, interval.data)
                         a.Start = max_address_used
-                        # print(f"Adding gen address to intervaltree {span[0]} {span[1]}")
+                        logger.debug(f"Adding gen address to intervaltree {span[0]} {span[1]}")
                         mem_used[span[0] : span[1] + 1] = (
                             max_address_used + t.size // gcd
                         )
@@ -784,16 +786,16 @@ class Scheduler:
                     min_mem_per_span[span[0] : span[1] + 1] = t
                 min_mem_required = 0
                 for t in range(1, num_timesteps + 1):
-                    # print(f"LOOKING AT TIMESTEP {t}")
+                    logger.debug(f"LOOKING AT TIMESTEP {t}")
                     mem_at_t = 0
                     for interval in min_mem_per_span[t]:
                         t = interval.data
-                        # print(f"tensor {t.name} used. span was [{makespan[t][0]}, {makespan[t][1]}]")
+                        logger.debug(f"tensor {t.name} used. span was [{makespan[t][0]}, {makespan[t][1]}]")
                         mem_at_t += t.size
                     min_mem_required = max(min_mem_required, mem_at_t)
                 min_memory_requirement = min_mem_required
                 min_memory_requirement_acurate = True
-                print("DONE WITH TENSOR ASSIGNMENT")
+                logger.debug("DONE WITH TENSOR ASSIGNMENT")
 
             processed = set()
             for t1, span1 in makespan.items():
@@ -812,7 +814,7 @@ class Scheduler:
                         or span1[0] > span2[1]
                         or not self.graph.can_overlap_in_time(t1, t2)
                     ):
-                        # print(t1.name + " and " + t2.name + "CANNOT OVERLAP")
+                        logger.debug(t1.name + " and " + t2.name + "CANNOT OVERLAP")
                         continue
 
                     if t1 in fixed_locations and t2 in fixed_locations:
@@ -968,7 +970,7 @@ class Scheduler:
                             continue
                         processed.add((t1, t2))
                         if not self.graph.can_overlap_in_time(t1, t2):
-                            # print(t1.name + " and " + t2.name + "CANNOT OVERLAP 2")
+                            logger.debug(t1.name + " and " + t2.name + "CANNOT OVERLAP 2")
                             continue
                         # Check if both t1 and t2 are live at ts.
                         generate_t1 = self.DenseGenerateOrFetchVarsMap(
@@ -1112,29 +1114,29 @@ class Scheduler:
 
         solver.set_objective_function(s, maximize=False)
 
-        # start_time = time.time()
-        # print("Start ILP solver")
-        # print("PROBLEM STATS = " + str(solver))
+        start_time = time.time()
+        logger.info("Start ILP solver")
+        logger.info("PROBLEM STATS = " + str(solver))
 
         result = solver.solve()
-        # print(f"ILP solver time: {time.time()-start_time} seconds")
+        logger.info(f"ILP solver time: {time.time()-start_time} seconds")
 
         if self.print_relaxation:
             relaxed_solution = solver.solve_relaxation()
-            print("CHECKING LP RELAXATION")
+            logger.info("CHECKING LP RELAXATION")
             for var, value in result.items():
                 if var.VType == "B":
                     if abs(value - relaxed_solution[var.varName]) > 0.5:
-                        print(
+                        logger.debug(
                             f" Var {var.varName} flipped: relaxed value {relaxed_solution[var.varName]} vs integral value {value}"
                         )
                     elif abs(value - relaxed_solution[var.varName]) > 0.05:
-                        print(
+                        logger.debug(
                             f" Var {var.varName} far from relaxed value {relaxed_solution[var.varName]}: integral value {value}"
                         )
                 else:
                     if abs(value - relaxed_solution[var.varName]) > 0.5:
-                        print(
+                        logger.debug(
                             f" Var {var.varName} changed: relaxed value {relaxed_solution[var.varName]} vs integral value {value}"
                         )
 
