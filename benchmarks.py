@@ -119,7 +119,7 @@ class Benchmark:
                 torch.randn((batch_size, 3, 520, 960)),
                 torch.randn((batch_size, 3, 520, 960)),
             )
-        elif model_name == "resnet":
+        elif model_name == "resnet" or model_name == "resnet18":
             model = torchvision.models.resnet18()
             inputs = (torch.randn((batch_size, 3, 224, 224)),)
         elif model_name == "resnet50":
