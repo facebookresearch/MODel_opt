@@ -207,3 +207,6 @@ class BenchmarksTest(unittest.TestCase):
     @unittest.skip("FIXME")
     def testXLMRBenchmarks(self):
         self.run_model_benchmarks("xlmr", additional_args="--generate-addresses")
+
+    def testOPT350MBenchmarks(self):
+        self.run_model_benchmarks("opt-350m", additional_args="--generate-addresses")
