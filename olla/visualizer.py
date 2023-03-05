@@ -10,13 +10,14 @@ from PIL import Image, ImageDraw
 from olla import utils
 
 
-def draw_schedule(schedule, img_path="/tmp/output.png"):
+def draw_schedule(schedule, img_path="/tmp/output.png", verbose=False):
 
     max_ts = 0
     max_address = 0
     boxes = {}
     for tensor, s in schedule.items():
-        print(f"Tensor {tensor.name}, schedule = {s}")
+        if verbose:
+            print(f"Tensor {tensor.name}, schedule = {s}")
         # No support for rematerialization yet
         assert len(s[0]) == 1
         # No support for spilling yet
@@ -35,13 +36,15 @@ def draw_schedule(schedule, img_path="/tmp/output.png"):
         max_ts = max(max_ts, deallocate)
         max_address = max(max_address, address + tensor.size)
 
-    print("Create img")
+    if verbose:
+        print("Create img")
     ts_factor = math.ceil(max_address / max_ts)
     img = Image.new(mode="RGB", size=(1280, 1280), color=(200, 200, 200))
     ts_factor = 1280 / (max_ts + 1)
     address_factor = 1280 / max_address
 
-    print("Create draw")
+    if verbose:
+        print("Create draw")
     draw = ImageDraw.Draw(img)
 
     for tensor, box in boxes.items():
@@ -54,5 +57,6 @@ def draw_schedule(schedule, img_path="/tmp/output.png"):
         )
         draw.rectangle(coordinates, fill=(50, 50, 200), outline=(255, 255, 255))
         draw.text(coordinates[:2], tensor.name, fill=(0, 0, 0))
-    print("Save img")
+    if verbose:    
+        print("Save img")
     img.save(img_path, "PNG")
