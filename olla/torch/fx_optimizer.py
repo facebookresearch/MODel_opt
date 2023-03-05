@@ -4,8 +4,10 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import logging
 import torch
 
+logger = logging.getLogger(__name__)
 
 class FXOptimizer:
     def __init__(self, fx_trace, fx_to_df_map):
@@ -28,7 +30,7 @@ class FXOptimizer:
             for fx_node_input in fx_node.all_input_nodes:
                 if fx_node_input not in added_fx_nodes:
                     prev_fx_node = addDependentNodes(fx_node_input, prev_fx_node)
-                    #print("adding in addDependentNodes: ", fx_node_input.name)
+                    logger.debug(f"adding in addDependentNodes: {fx_node_input.name}")
                     prev_fx_node.append(fx_node_input)
                     added_fx_nodes.add(fx_node_input)
                     prev_fx_node = prev_fx_node.next
@@ -37,8 +39,8 @@ class FXOptimizer:
         def addNode(fx_node, prev_fx_node):
             if prev_fx_node.next != fx_node:
                 if fx_node in added_fx_nodes:
-                    print(
-                        f"WARNING: trying to add {fx_node.name} that is already added. Will ignore but need to debug why."
+                    logger.warning(
+                        f"Trying to add {fx_node.name} that is already added. Will ignore but need to debug why."
                     )
                     pass
                 else:
@@ -46,7 +48,7 @@ class FXOptimizer:
                     prev_fx_node = addDependentNodes(fx_node, prev_fx_node)
                     # add fx_node
                     prev_fx_node.append(fx_node)
-                    # print("adding in addNode: ", fx_node.name)
+                    logger.debug(f"adding in addNode: {fx_node.name}")
                     added_fx_nodes.add(fx_node)
             added_fx_nodes.add(prev_fx_node)
             prev_fx_node = prev_fx_node.next
