@@ -19,8 +19,9 @@ logging.basicConfig(level=logging.CRITICAL)
 def create_model():
     return torchvision.models.mobilenet_v2().cuda()
 
-# input = torch.rand(1, 3, 224, 224).cuda()
-# optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+def create_optimizer(model):
+    return torch.optim.SGD(model.parameters(), lr=0.1)
+
 loss_fn = torch.nn.MSELoss()
 
 def get_max(fn, *args, **kwargs):
@@ -57,6 +58,7 @@ def try_model(fn, bs, *args, **kwargs):
         output = fn(input, *args, **kwargs)
     except Exception as e:
         logging.debug(str(e))
+        logging.debug(traceback.format_exc())
         return False
     return True
 
@@ -69,11 +71,21 @@ def run_in_process(fn, *args, **kwargs):
         ret = fn.result()  # will rethrow any exceptions
         return ret
 
-def run_eager(input, create_model):
+def run_eager(input, create_model, is_training=False, create_optimizer=None, loss_fn=None):
     model = create_model()
-    model.eval()
-
-    model(input)
+    
+    if is_training:
+        model.train()
+        optimizer = create_optimizer(model)
+    else:
+        model.eval()
+    
+    output = model(input)
+    if is_training:
+        target = torch.zeros_like(output)
+        loss = loss_fn(ouput, target)
+        loss.backward()
+        optimizer.step()
 
 def run_fx(input, create_model):
     model = create_model()
@@ -84,11 +96,16 @@ def run_fx(input, create_model):
 
     model(input)
 
-def run_olla(input, create_model):
+def run_olla(input, create_model, is_training=False, create_optimizer=None, loss_fn=None):
     model = create_model()
-    model.eval()
 
-    model_olla = olla.optimize(model, input)
+    if is_training:
+        model.train()
+        model_olla = olla.optimize(model, input, optimizer=create_optimizer(model), loss_fn=loss_fn)
+    else:
+        model.eval()
+        model_olla = olla.optimize(model, input)
+
     model_olla(input)
 
 print("Eager:")
