@@ -23,6 +23,7 @@ def create_optimizer(model):
     return torch.optim.SGD(model.parameters(), lr=0.1)
 
 loss_fn = torch.nn.MSELoss()
+is_training = True
 
 def get_max(fn, *args, **kwargs):
     start = 1
@@ -83,7 +84,7 @@ def run_eager(input, create_model, is_training=False, create_optimizer=None, los
     output = model(input)
     if is_training:
         target = torch.zeros_like(output)
-        loss = loss_fn(ouput, target)
+        loss = loss_fn(output, target)
         loss.backward()
         optimizer.step()
 
@@ -109,13 +110,14 @@ def run_olla(input, create_model, is_training=False, create_optimizer=None, loss
     model_olla(input)
 
 print("Eager:")
-max_eager = get_max(run_eager, create_model)
+max_eager = get_max(run_eager, create_model, is_training=is_training, create_optimizer=create_optimizer, loss_fn=loss_fn)
 print(f"max_eager is {max_eager}")
 
+# TODO: support training for fx
 print("fx:")
 max_fx = get_max(run_fx, create_model)
 print(f"max_fx is {max_fx}")
 
 print("olla:")
-max_olla = get_max(run_olla, create_model)
+max_olla = get_max(run_olla, create_model, is_training=is_training, create_optimizer=create_optimizer, loss_fn=loss_fn)
 print(f"max_olla is {max_olla}")
