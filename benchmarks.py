@@ -215,18 +215,18 @@ class Benchmark:
                     super(GPT2Wrapper, self).__init__()
                     self.model = GPT2Model.from_pretrained('gpt2')
 
-                def forward(self, x):
-                    return self.model(x).last_hidden_state
+                def forward(self, input_ids, attention_mask):
+                    return self.model(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
             tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-            max_seq_len = 1024
+            max_seq_len = 512
             text = "Replace me by any text you'd like."
             # Repeat text to fill maximum sequence length of model
             text = text * (max_seq_len // len(text.split()))
             input_batch = [text] * batch_size
-            tokens = tokenizer.tokenize(text)
-            indexed_tokens = tokenizer.convert_tokens_to_ids(tokens)
-            inputs = torch.tensor([indexed_tokens])
+	    
+            inputs = list(tokenizer(text, return_tensors="pt").values())
             model = GPT2Wrapper()
+            model(*inputs)
 
         if mode == "eval":
             model.eval()
