@@ -7,6 +7,7 @@
 import functools
 import math
 import re
+import traceback
 from collections import defaultdict
 from typing import List
 
@@ -1117,6 +1118,8 @@ class Graph:
         try:
             valid = self.check_consistency(verbose)
         except Exception:
+            if verbose:
+                print(traceback.format_exc())
             return False
 
         valid &= not self.has_loops(verbose)
