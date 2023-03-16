@@ -398,9 +398,13 @@ class Benchmark:
 
         node_ordering = utils.extract_node_ordering(g, schedule)
 
-        fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
-        fx_opt.Reorder(node_ordering)
-        fx_graph_opt = fx_opt.fx_trace
+        try:
+            fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
+            fx_opt.Reorder(node_ordering)
+            fx_graph_opt = fx_opt.fx_trace
+        except Exception as e:
+            print(f"  FAILED TO EXPORT NODE REORDERD SOLUTON FOR {model} TO FX:\n{traceback.format_exc()}")
+            fx_graph_opt = None
 
         return (summary["peak_mem_usage"], node_ordering, fx_graph_opt, stop - start)
 
