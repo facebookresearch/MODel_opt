@@ -39,9 +39,7 @@ class FXOptimizer:
         def addNode(fx_node, prev_fx_node):
             if prev_fx_node.next != fx_node:
                 if fx_node in added_fx_nodes:
-                    logger.warning(
-                        f"Trying to add {fx_node.name} that is already added. Will ignore but need to debug why."
-                    )
+                    logger.debug(f"Trying to add {fx_node.name} that is already added.")
                     pass
                 else:
                     # ensure that any nodes that fx_node requires are added first
