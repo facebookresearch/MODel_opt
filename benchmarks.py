@@ -199,12 +199,13 @@ class Benchmark:
                     return self.model(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
 
             tokenizer = AutoTokenizer.from_pretrained(f"facebook/{model_name}")
-            max_seq_len = 512 # 2048
-            text = "Replace me by any text you'd like."
+            max_seq_len = 2047
+            word = "Hello"
             # Repeat text to fill maximum sequence length of model
-            text = text * (max_seq_len // len(text.split()))
-            input_batch = [text] * batch_size
-            inputs = list(tokenizer(text, return_tensors="pt").values())
+            sentence = " ".join([word] * max_seq_len)
+            batch_sentences = [sentence] * batch_size
+
+            inputs = list(tokenizer(batch_sentences, return_tensors="pt").values())
             model = OPTWrapper()
             model(*inputs)
         elif model_name == "gpt2":
@@ -222,8 +223,8 @@ class Benchmark:
             max_seq_len = 1024
             word = "Hello"
             # Repeat text to fill maximum sequence length of model
-            sentence = " ".join([word] * max_seq_len)
-            input_batch = [sentence] * batch_size
+            batch_sentences = " ".join([word] * max_seq_len)
+            input_batch = [batch_sentences] * batch_size
 	    
             inputs = list(tokenizer(input_batch, return_tensors="pt").values())
             model = GPT2Wrapper()
