@@ -180,13 +180,14 @@ class Benchmark:
             xlmr_base = torchtext.models.XLMR_BASE_ENCODER
             model = xlmr_base.get_model()
             transform = xlmr_base.transform()
-            max_seq_len = 1024
-            text = "Hello world"
+            max_seq_len = 256
+            word = "Hello"
             # Repeat text to fill maximum sequence length of model
-            text = text * (max_seq_len // len(text.split()))
-            input_batch = [text] * batch_size
+            sentence = " ".join([word] * max_seq_len)
+            batch_sentences = [sentence] * batch_size
+
             inputs = (
-                torchtext.functional.to_tensor(transform(input_batch), padding_value=1),
+                torchtext.functional.to_tensor(transform(batch_sentences), padding_value=1),
             )
         elif model_name.startswith("opt"):
             from transformers import AutoTokenizer, OPTModel
@@ -207,7 +208,6 @@ class Benchmark:
 
             inputs = list(tokenizer(batch_sentences, return_tensors="pt").values())
             model = OPTWrapper()
-            model(*inputs)
         elif model_name == "gpt2":
             # TODO: Fix error when loading GPT2
             from transformers import GPT2Tokenizer, GPT2Model
@@ -228,8 +228,6 @@ class Benchmark:
 	    
             inputs = list(tokenizer(input_batch, return_tensors="pt").values())
             model = GPT2Wrapper()
-            model(*inputs)
-
         if mode == "eval":
             model.eval()
 
