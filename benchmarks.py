@@ -217,14 +217,15 @@ class Benchmark:
 
                 def forward(self, input_ids, attention_mask):
                     return self.model(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
+
             tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-            max_seq_len = 512
-            text = "Replace me by any text you'd like."
+            max_seq_len = 1024
+            word = "Hello"
             # Repeat text to fill maximum sequence length of model
-            text = text * (max_seq_len // len(text.split()))
-            input_batch = [text] * batch_size
+            sentence = " ".join([word] * max_seq_len)
+            input_batch = [sentence] * batch_size
 	    
-            inputs = list(tokenizer(text, return_tensors="pt").values())
+            inputs = list(tokenizer(input_batch, return_tensors="pt").values())
             model = GPT2Wrapper()
             model(*inputs)
 
