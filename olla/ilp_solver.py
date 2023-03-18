@@ -123,6 +123,7 @@ class ILPSolver:
         self.model.addLConstr(cns, name=name)
 
     def solve(self):
+        logger.debug(f"NUMBER OF VARIABLES: {len(self.vars)}, NUMBER OF CONSTRAINTS: {self.num_constraints}")
         # Solve the problem. Return the result as a dictionary of values
         # indexed by the corresponding variables or an empty dictionary if the
         # problem is infeasible.
