@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import functools
+import logging
 import math
 import re
 import traceback
@@ -14,6 +15,7 @@ from typing import List
 import networkx as nx
 from graphviz import Digraph
 
+logger = logging.getLogger(__name__)
 
 # Each node corresponds to a computation in the model. Each node can have
 # fanin (resp fanout) edges, which correspond to the tensor(s) fed to (resp
@@ -1018,7 +1020,8 @@ class Graph:
             seen_sinks = set()
             for snk in e.sinks:
                 if snk in seen_sinks:
-                    raise AssertionError(f"Edge {e} has duplicate sink")
+                    logger.warning(f"Edge {e} has duplicate sink {snk}. Removing the duplicate sink.")
+                    e.sinks.remove(snk)
                 seen_sinks.add(snk)
 
         for n in self.nodes.values():
@@ -1031,7 +1034,8 @@ class Graph:
             seen_fanin = set()
             for e in n.fanin:
                 if e in seen_fanin:
-                    raise AssertionError(f"Node {n} has duplicate fanin")
+                    logger.warning(f"Node {n} has duplicate fanin {e}. Removing the duplicate fanin.")
+                    n.fanin.remove(e)
                 seen_fanin.add(e)
 
     def check_for_self_edges(self):
