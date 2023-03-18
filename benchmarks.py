@@ -134,10 +134,11 @@ class Benchmark:
             model = bert_base.get_model()
             transform = bert_base.transform()
             max_seq_len = 256
+            seq_len = args.seq_len if args.seq_len else max_seq_len
 
             word = "Hello"
             # Repeat text to fill maximum sequence length of model
-            sentence = " ".join([word] * max_seq_len)
+            sentence = " ".join([word] * seq_len)
             batch_sentences = [sentence] * batch_size
             inputs = (
                 torchtext.functional.to_tensor(transform(batch_sentences), padding_value=1),
@@ -182,9 +183,11 @@ class Benchmark:
             model = xlmr_base.get_model()
             transform = xlmr_base.transform()
             max_seq_len = 256
+            seq_len = args.seq_len if args.seq_len else max_seq_len
+
             word = "Hello"
             # Repeat text to fill maximum sequence length of model
-            sentence = " ".join([word] * max_seq_len)
+            sentence = " ".join([word] * seq_len)
             batch_sentences = [sentence] * batch_size
 
             inputs = (
@@ -202,9 +205,11 @@ class Benchmark:
 
             tokenizer = AutoTokenizer.from_pretrained(f"facebook/{model_name}")
             max_seq_len = 2047
+            seq_len = args.seq_len if args.seq_len else max_seq_len
+
             word = "Hello"
             # Repeat text to fill maximum sequence length of model
-            sentence = " ".join([word] * max_seq_len)
+            sentence = " ".join([word] * seq_len)
             batch_sentences = [sentence] * batch_size
 
             inputs = list(tokenizer(batch_sentences, return_tensors="pt").values())
@@ -222,9 +227,11 @@ class Benchmark:
 
             tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
             max_seq_len = 1024
+            seq_len = args.seq_len if args.seq_len else max_seq_len
+
             word = "Hello"
             # Repeat text to fill maximum sequence length of model
-            batch_sentences = " ".join([word] * max_seq_len)
+            batch_sentences = " ".join([word] * seq_len)
             input_batch = [batch_sentences] * batch_size
 	    
             inputs = list(tokenizer(input_batch, return_tensors="pt").values())
@@ -525,6 +532,8 @@ parser = argparse.ArgumentParser(description="MemOpt Benchmarks")
 parser.add_argument("-b", "--batch-size", "--batch-sizes", nargs="+", type=int, default=[1, 32])
 parser.add_argument("-m", "--model", "--models", nargs="+", type=str, default=BENCHMARKS.keys())
 parser.add_argument("--mode", "--modes", nargs="+", type=str, choices=["eval", "train"], default=None)
+
+parser.add_argument("--seq-len", type=int, default=None, help="Sequence length for text/speech/sequence models. If not specified, use the model's maximum length")
 
 parser.add_argument("--solver-timeout", type=int, default=1800, help="ILP solver timeout in seconds")
 parser.add_argument("--render-models", action="store_true")
