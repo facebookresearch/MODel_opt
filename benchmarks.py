@@ -152,7 +152,7 @@ class Benchmark:
             inputs = (torch.randn((batch_size, 3, 224, 224)),)
         elif model_name == "transformer":
             model = torch.nn.Transformer(
-                nhead=1, num_encoder_layers=1, num_decoder_layers=1
+                d_model=512, nhead=1, num_encoder_layers=1, num_decoder_layers=1
             )
             inputs = (
                 torch.rand((10, batch_size, 512)),
@@ -164,7 +164,7 @@ class Benchmark:
                 torch.rand((10, batch_size, 512)),
                 torch.rand((20, batch_size, 512)),
             )
-        elif model_name == "vgg":
+        elif model_name == "vgg" or model_name == "vgg11":
             model = torchvision.models.vgg11()
             inputs = (torch.randn((batch_size, 3, 224, 224)),)
         elif model_name == "vgg16":
