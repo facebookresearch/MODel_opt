@@ -1,5 +1,5 @@
 tensorboard==2.11.2
-tensorflow==2.11.0
+tensorflow==2.11.1
 tf-models-official==2.11.3
 tensorboard-plugin-profile==2.11.1
 transformers==4.27.1
