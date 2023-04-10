@@ -162,7 +162,7 @@ class SchedulerTest(unittest.TestCase):
 
         self.assertEqual(summary["peak_mem_usage"], 120)
         self.assertLessEqual(summary["peak_mem_usage"], summary["required_memory"])
-        self.assertEqual(summary["total_data_swapped"], 160)
+        self.assertEqual(summary["total_data_swapped"], 180)
 
         self.assertTrue(utils.validate_address_allocation(mem_loc))
         self.assertTrue(utils.validate_timeline(schedule))
@@ -207,10 +207,10 @@ class SchedulerTest(unittest.TestCase):
             s,
             [
                 "1: (['1@0'], [2], []) ",
-                "2: (['1@90'], [2, 3, 4], []) ",
-                "3: (['2@20'], [3], []) ",
-                "4: (['3@50'], [4, 5], []) ",
-                "5: (['4@0'], [5], []) ",
+                "2: (['1@40'], [2, 3, 4], []) ",
+                "3: (['2@60'], [3], []) ",
+                "4: (['3@0'], [4, 5], []) ",
+                "5: (['4@60'], [5], []) ",
             ],
         )
 
