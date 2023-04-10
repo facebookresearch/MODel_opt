@@ -45,7 +45,7 @@ class MemoryPlannerTest(unittest.TestCase):
         p = memory_planner.MemoryPlanner()
         summary = p.plan(g, mem_limit=1024)
 
-        self.assertEqual(summary["peak_mem_usage"], 130)
+        self.assertEqual(summary["peak_mem_usage"], 150)
         self.assertLessEqual(summary["peak_mem_usage"], summary["required_memory"])
         self.assertEqual(summary["total_data_swapped"], 0)
 

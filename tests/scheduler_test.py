@@ -19,6 +19,9 @@ from olla.native_graphs import (
 
 
 class SchedulerTest(unittest.TestCase):
+    def setUp(self):
+        self.maxDiff = None
+
     def testNonFragmentation(self):
         g = simple_graph.graph
 
