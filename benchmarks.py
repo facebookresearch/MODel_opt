@@ -619,7 +619,7 @@ parser.add_argument("--rematerialization", action="store_true")
 parser.add_argument("--spilling", action="store_true")
 
 parser.add_argument("--log-path", "--log_path", default="/tmp/opt4ml_benchmarks.csv")
-parser.add_argument("--append-log", action="store_true")
+parser.add_argument("-a", "--append-log", action="store_true")
 parser.add_argument(
     '-d', '--debug',
     help="Log debugging statements",
