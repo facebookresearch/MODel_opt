@@ -37,6 +37,7 @@ class Benchmark:
         mode,
         batch_size=32,
         device="cpu",
+        distributed=False,
         profile=None,
         warm_up_iters=0,
         profile_iters=1,
@@ -236,10 +237,14 @@ class Benchmark:
 	    
             inputs = list(tokenizer(input_batch, return_tensors="pt").values())
             model = GPT2Wrapper()
+
         if mode == "eval":
             model.eval()
 
         if device != "cpu":
+            if distributed:
+                model = torch.nn.DataParallel(model)
+
             model.to(device)
             # convert tuple to list so that we can modify it
             inputs = list(inputs)
@@ -532,6 +537,7 @@ parser = argparse.ArgumentParser(description="MemOpt Benchmarks")
 parser.add_argument("-b", "--batch-size", "--batch-sizes", nargs="+", type=int, default=[1, 32])
 parser.add_argument("-m", "--model", "--models", nargs="+", type=str, default=BENCHMARKS.keys())
 parser.add_argument("--mode", "--modes", nargs="+", type=str, choices=["eval", "train"], default=None)
+parser.add_argument("--distributed", action="store_true", help="Distribute among GPUs")
 
 parser.add_argument("--seq-len", type=int, default=None, help="Sequence length for text/speech/sequence models. If not specified, use the model's maximum length")
 
@@ -590,6 +596,7 @@ if __name__ == "__main__":
                     flush=True,
                 )
                 device = "cpu"
+                distributed = args.distributed
                 profile = []
                 warm_up_iters = 1 if args.warm_up_iters is None else args.warm_up_iters
                 profile_iters = 10 if args.profile_iters is None else args.profile_iters
@@ -621,6 +628,7 @@ if __name__ == "__main__":
                         mode,
                         batch_size,
                         device=device,
+                        distributed=distributed,
                         profile=profile,
                         warm_up_iters=warm_up_iters,
                         profile_iters=profile_iters,
