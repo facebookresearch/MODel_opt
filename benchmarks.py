@@ -179,6 +179,12 @@ class Benchmark:
         elif model_name == "resnet50":
             model = torchvision.models.resnet50()
             inputs = (torch.randn((batch_size, 3, 224, 224)),)
+        elif model_name == "resnet101":
+            model = torchvision.models.resnet101()
+            inputs = (torch.randn((batch_size, 3, 224, 224)),)
+        elif model_name == "resnet152":
+            model = torchvision.models.resnet152()
+            inputs = (torch.randn((batch_size, 3, 224, 224)),)
         elif model_name == "resnet3d":
             model = torchvision.models.video.r3d_18()
             inputs = (torch.randn((batch_size, 3, 1, 112, 112)),)
