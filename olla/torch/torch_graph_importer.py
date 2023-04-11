@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.fx
-import torch.nn.utils._stateless as stateless
+import torch.nn.utils.stateless as stateless
 from functorch import make_fx
 from functorch.compile import compiled_function, default_partition
 from olla import dataflow_graph
