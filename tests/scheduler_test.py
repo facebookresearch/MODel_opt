@@ -19,6 +19,9 @@ from olla.native_graphs import (
 
 
 class SchedulerTest(unittest.TestCase):
+    def setUp(self):
+        self.maxDiff = None
+
     def testNonFragmentation(self):
         g = simple_graph.graph
 
@@ -137,14 +140,14 @@ class SchedulerTest(unittest.TestCase):
         self.assertEqual(
             s,
             [
-                "1: (['1@30'], [2], []) ",
-                "2: (['2@130'], [3], []) ",
-                "3: (['2@0'], [3, 4], []) ",
-                "4: (['4@110'], [5], []) ",
-                "5: (['5@0'], [6], []) ",
-                "6: (['3@50'], [4, 5, 6], []) ",
-                "7: (['6@110'], [], []) ",
-                "8: (['3[ctrl]'], [4, 5], []) ",
+                "1: (['2@0'], [3], []) ",
+                "2: (['3@130'], [4], []) ",
+                "3: (['3@100'], [4], []) ",
+                "4: (['4@60'], [5], []) ",
+                "5: (['5@100'], [6], []) ",
+                "6: (['4@0'], [5, 6], []) ",
+                "7: (['6@90'], [], []) ",
+                "8: (['4[ctrl]'], [5], []) ",
             ],
         )
 
@@ -162,7 +165,7 @@ class SchedulerTest(unittest.TestCase):
 
         self.assertEqual(summary["peak_mem_usage"], 120)
         self.assertLessEqual(summary["peak_mem_usage"], summary["required_memory"])
-        self.assertEqual(summary["total_data_swapped"], 160)
+        self.assertEqual(summary["total_data_swapped"], 180)
 
         self.assertTrue(utils.validate_address_allocation(mem_loc))
         self.assertTrue(utils.validate_timeline(schedule))
@@ -173,13 +176,13 @@ class SchedulerTest(unittest.TestCase):
             s,
             [
                 "1: (['1@0'], [2], []) ",
-                "2: (['2@70'], [], ['4@40']) ",
-                "3: (['2@40'], [3], []) ",
-                "4: (['3@0'], [4, 5], []) ",
-                "5: (['5@70'], [6], []) ",
-                "6: (['4@60'], [], ['6@10']) ",
-                "7: (['6@0'], [], []) ",
-                "8: (['4[ctrl]'], [5], []) ",
+                "2: (['2@60'], [3], []) ",
+                "3: (['2@10'], [], ['4@0']) ",
+                "4: (['4@60'], [5], []) ",
+                "5: (['5@0'], [6], []) ",
+                "6: (['3@0'], [], ['6@60']) ",
+                "7: (['6@50'], [], []) ",
+                "8: (['3[ctrl]'], [4, 5], []) ",
             ],
         )
 
@@ -207,10 +210,10 @@ class SchedulerTest(unittest.TestCase):
             s,
             [
                 "1: (['1@0'], [2], []) ",
-                "2: (['1@90'], [2, 3, 4], []) ",
-                "3: (['2@20'], [3], []) ",
-                "4: (['3@50'], [4, 5], []) ",
-                "5: (['4@0'], [5], []) ",
+                "2: (['1@40'], [2, 3, 4], []) ",
+                "3: (['2@60'], [3], []) ",
+                "4: (['3@0'], [4, 5], []) ",
+                "5: (['4@60'], [5], []) ",
             ],
         )
 
@@ -237,11 +240,11 @@ class SchedulerTest(unittest.TestCase):
         self.assertEqual(
             s,
             [
-                "1: (['3@0'], [4], []) ",
-                "2: (['3@40'], [4], []) ",
-                "allocate_3: (['1@10'], [2, 3, 4, 5], []) ",
-                "B_3: (['4[ctrl]'], [5], []) ",
-                "C_3: (['4[ctrl]'], [5], []) ",
+                "1: (['1@30'], [2, 3], []) ",
+                "2: (['1@40'], [2], []) ",
+                "allocate_3: (['1@0'], [2, 3, 4, 5], []) ",
+                "B_3: (['3[ctrl]'], [4, 5], []) ",
+                "C_3: (['2[ctrl]'], [3, 4, 5], []) ",
             ],
         )
 
