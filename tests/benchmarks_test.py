@@ -209,4 +209,5 @@ class BenchmarksTest(unittest.TestCase):
         self.run_model_benchmarks("xlmr", additional_args="--generate-addresses")
 
     def testOPT350MBenchmarks(self):
-        self.run_model_benchmarks("opt-350m", additional_args="--generate-addresses")
+        self.run_model_benchmarks("opt-350m", batch_sizes=[1], modes=["eval"], additional_args="--generate-addresses")
+        self.run_model_benchmarks("opt-350m", batch_sizes=[1], modes=["train"], additional_args="--generate-addresses")
