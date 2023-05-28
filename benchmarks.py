@@ -37,6 +37,7 @@ class Benchmark:
         mode,
         batch_size=32,
         device="cpu",
+        distributed=False,
         profile=None,
         warm_up_iters=0,
         profile_iters=1,
@@ -114,6 +115,58 @@ class Benchmark:
         elif model_name == "mobilenet":
             model = torchvision.models.mobilenet_v2()
             inputs = (torch.randn((batch_size, 3, 224, 224)),)
+        elif model_name == "mobilenetv1":
+            import torch.nn as nn
+            class MobileNetV1(torch.nn.Module):
+                def __init__(self, ch_in, n_classes):
+                    super(MobileNetV1, self).__init__()
+
+                    def conv_bn(inp, oup, stride):
+                        return nn.Sequential(
+                            nn.Conv2d(inp, oup, 3, stride, 1, bias=False),
+                            nn.BatchNorm2d(oup),
+                            nn.ReLU(inplace=True)
+                            )
+
+                    def conv_dw(inp, oup, stride):
+                        return nn.Sequential(
+                            # dw
+                            nn.Conv2d(inp, inp, 3, stride, 1, groups=inp, bias=False),
+                            nn.BatchNorm2d(inp),
+                            nn.ReLU(inplace=True),
+
+                            # pw
+                            nn.Conv2d(inp, oup, 1, 1, 0, bias=False),
+                            nn.BatchNorm2d(oup),
+                            nn.ReLU(inplace=True),
+                            )
+
+                    self.model = nn.Sequential(
+                        conv_bn(ch_in, 32, 2),
+                        conv_dw(32, 64, 1),
+                        conv_dw(64, 128, 2),
+                        conv_dw(128, 128, 1),
+                        conv_dw(128, 256, 2),
+                        conv_dw(256, 256, 1),
+                        conv_dw(256, 512, 2),
+                        conv_dw(512, 512, 1),
+                        conv_dw(512, 512, 1),
+                        conv_dw(512, 512, 1),
+                        conv_dw(512, 512, 1),
+                        conv_dw(512, 512, 1),
+                        conv_dw(512, 1024, 2),
+                        conv_dw(1024, 1024, 1),
+                        nn.AdaptiveAvgPool2d(1)
+                    )
+                    self.fc = nn.Linear(1024, n_classes)
+
+                def forward(self, x):
+                    x = self.model(x)
+                    x = x.view(-1, 1024)
+                    x = self.fc(x)
+                    return x
+            model = MobileNetV1(ch_in=3, n_classes=1000)
+            inputs = (torch.randn((batch_size, 3, 224, 224)),)
         elif model_name == "raft":
             model = torchvision.models.optical_flow.raft_small()
             inputs = (
@@ -126,6 +179,12 @@ class Benchmark:
         elif model_name == "resnet50":
             model = torchvision.models.resnet50()
             inputs = (torch.randn((batch_size, 3, 224, 224)),)
+        elif model_name == "resnet101":
+            model = torchvision.models.resnet101()
+            inputs = (torch.randn((batch_size, 3, 224, 224)),)
+        elif model_name == "resnet152":
+            model = torchvision.models.resnet152()
+            inputs = (torch.randn((batch_size, 3, 224, 224)),)
         elif model_name == "resnet3d":
             model = torchvision.models.video.r3d_18()
             inputs = (torch.randn((batch_size, 3, 1, 112, 112)),)
@@ -133,13 +192,15 @@ class Benchmark:
             bert_base = torchtext.models.ROBERTA_BASE_ENCODER
             model = bert_base.get_model()
             transform = bert_base.transform()
-            max_seq_len = 512
-            text = "Hello world"
+            max_seq_len = 256
+            seq_len = args.seq_len if args.seq_len else max_seq_len
+
+            word = "Hello"
             # Repeat text to fill maximum sequence length of model
-            text = text * (max_seq_len // len(text.split()))
-            input_batch = [text] * batch_size
+            sentence = " ".join([word] * seq_len)
+            batch_sentences = [sentence] * batch_size
             inputs = (
-                torchtext.functional.to_tensor(transform(input_batch), padding_value=1),
+                torchtext.functional.to_tensor(transform(batch_sentences), padding_value=1),
             )
         elif model_name == "squeezenet":
             model = torchvision.models.squeezenet1_0()
@@ -180,13 +241,16 @@ class Benchmark:
             xlmr_base = torchtext.models.XLMR_BASE_ENCODER
             model = xlmr_base.get_model()
             transform = xlmr_base.transform()
-            max_seq_len = 1024
-            text = "Hello world"
+            max_seq_len = 256
+            seq_len = args.seq_len if args.seq_len else max_seq_len
+
+            word = "Hello"
             # Repeat text to fill maximum sequence length of model
-            text = text * (max_seq_len // len(text.split()))
-            input_batch = [text] * batch_size
+            sentence = " ".join([word] * seq_len)
+            batch_sentences = [sentence] * batch_size
+
             inputs = (
-                torchtext.functional.to_tensor(transform(input_batch), padding_value=1),
+                torchtext.functional.to_tensor(transform(batch_sentences), padding_value=1),
             )
         elif model_name.startswith("opt"):
             from transformers import AutoTokenizer, OPTModel
@@ -199,14 +263,16 @@ class Benchmark:
                     return self.model(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
 
             tokenizer = AutoTokenizer.from_pretrained(f"facebook/{model_name}")
-            max_seq_len = 512 # 2048
-            text = "Replace me by any text you'd like."
+            max_seq_len = 2047
+            seq_len = args.seq_len if args.seq_len else max_seq_len
+
+            word = "Hello"
             # Repeat text to fill maximum sequence length of model
-            text = text * (max_seq_len // len(text.split()))
-            input_batch = [text] * batch_size
-            inputs = list(tokenizer(text, return_tensors="pt").values())
+            sentence = " ".join([word] * seq_len)
+            batch_sentences = [sentence] * batch_size
+
+            inputs = list(tokenizer(batch_sentences, return_tensors="pt").values())
             model = OPTWrapper()
-            model(*inputs)
         elif model_name == "gpt2":
             # TODO: Fix error when loading GPT2
             from transformers import GPT2Tokenizer, GPT2Model
@@ -215,23 +281,28 @@ class Benchmark:
                     super(GPT2Wrapper, self).__init__()
                     self.model = GPT2Model.from_pretrained('gpt2')
 
-                def forward(self, x):
-                    return self.model(x).last_hidden_state
+                def forward(self, input_ids, attention_mask):
+                    return self.model(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
+
             tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
             max_seq_len = 1024
-            text = "Replace me by any text you'd like."
+            seq_len = args.seq_len if args.seq_len else max_seq_len
+
+            word = "Hello"
             # Repeat text to fill maximum sequence length of model
-            text = text * (max_seq_len // len(text.split()))
-            input_batch = [text] * batch_size
-            tokens = tokenizer.tokenize(text)
-            indexed_tokens = tokenizer.convert_tokens_to_ids(tokens)
-            inputs = torch.tensor([indexed_tokens])
+            batch_sentences = " ".join([word] * seq_len)
+            input_batch = [batch_sentences] * batch_size
+	    
+            inputs = list(tokenizer(input_batch, return_tensors="pt").values())
             model = GPT2Wrapper()
 
         if mode == "eval":
             model.eval()
 
         if device != "cpu":
+            if distributed:
+                model = torch.nn.DataParallel(model)
+
             model.to(device)
             # convert tuple to list so that we can modify it
             inputs = list(inputs)
@@ -398,9 +469,13 @@ class Benchmark:
 
         node_ordering = utils.extract_node_ordering(g, schedule)
 
-        fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
-        fx_opt.Reorder(node_ordering)
-        fx_graph_opt = fx_opt.fx_trace
+        try:
+            fx_opt = FXOptimizer(fx_graph, fx_to_df_map)
+            fx_opt.Reorder(node_ordering)
+            fx_graph_opt = fx_opt.fx_trace
+        except Exception as e:
+            print(f"  FAILED TO EXPORT NODE REORDERD SOLUTON FOR {model} TO FX:\n{traceback.format_exc()}")
+            fx_graph_opt = None
 
         return (summary["peak_mem_usage"], node_ordering, fx_graph_opt, stop - start)
 
@@ -520,6 +595,9 @@ parser = argparse.ArgumentParser(description="MemOpt Benchmarks")
 parser.add_argument("-b", "--batch-size", "--batch-sizes", nargs="+", type=int, default=[1, 32])
 parser.add_argument("-m", "--model", "--models", nargs="+", type=str, default=BENCHMARKS.keys())
 parser.add_argument("--mode", "--modes", nargs="+", type=str, choices=["eval", "train"], default=None)
+parser.add_argument("--distributed", action="store_true", help="Distribute among GPUs")
+
+parser.add_argument("--seq-len", type=int, default=None, help="Sequence length for text/speech/sequence models. If not specified, use the model's maximum length")
 
 parser.add_argument("--solver-timeout", type=int, default=1800, help="ILP solver timeout in seconds")
 parser.add_argument("--render-models", action="store_true")
@@ -541,7 +619,7 @@ parser.add_argument("--rematerialization", action="store_true")
 parser.add_argument("--spilling", action="store_true")
 
 parser.add_argument("--log-path", "--log_path", default="/tmp/opt4ml_benchmarks.csv")
-parser.add_argument("--append-log", action="store_true")
+parser.add_argument("-a", "--append-log", action="store_true")
 parser.add_argument(
     '-d', '--debug',
     help="Log debugging statements",
@@ -576,6 +654,7 @@ if __name__ == "__main__":
                     flush=True,
                 )
                 device = "cpu"
+                distributed = args.distributed
                 profile = []
                 warm_up_iters = 1 if args.warm_up_iters is None else args.warm_up_iters
                 profile_iters = 10 if args.profile_iters is None else args.profile_iters
@@ -607,6 +686,7 @@ if __name__ == "__main__":
                         mode,
                         batch_size,
                         device=device,
+                        distributed=distributed,
                         profile=profile,
                         warm_up_iters=warm_up_iters,
                         profile_iters=profile_iters,

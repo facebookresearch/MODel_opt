@@ -15,7 +15,12 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.fx
-import torch.nn.utils._stateless as stateless
+# Handle different name of file in different PyTorch versions:
+try:
+    import torch.nn.utils.stateless as stateless
+except Exception as e:
+    import torch.nn.utils._stateless as stateless
+
 from functorch import make_fx
 from functorch.compile import compiled_function, default_partition
 from olla import dataflow_graph
@@ -405,7 +410,7 @@ class TorchGraphImporter:
                         or fanout.name.startswith("getitem_")
                         or fanout.name == "lift_fresh_copy"
                         or fanout.name.startswith("lift_fresh_copy_")
-                    ), f"fannout name is {fanout.name}"
+                    ), f"fanout name is {fanout.name}"
 
             if fx_node not in fx2df_node_map:
                 continue

@@ -91,6 +91,7 @@ class ProfilingInterpreter(torch.fx.Interpreter):
                 self.node_profiles[n]["memory_reserved"].append(memory_reserved)
 
                 torch.cuda.reset_peak_memory_stats()
+                torch.cuda.empty_cache()
         except RuntimeError:
             pass  # warnings.warn(f"Unable to profile node {n.name}", RuntimeWarning)
 
