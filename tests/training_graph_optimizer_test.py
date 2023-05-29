@@ -7,8 +7,8 @@
 import unittest
 from collections import defaultdict
 
-from olla import training_graph_optimizer, utils
-from olla.native_graphs import (
+from model_opt import training_graph_optimizer, utils
+from model_opt.native_graphs import (
     diamond_graph,
     graph_with_bmmadd,
     graph_with_constants,

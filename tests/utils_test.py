@@ -6,8 +6,8 @@
 
 import unittest
 
-from olla import dataflow_graph, utils
-from olla.native_graphs import graph_with_weights
+from model_opt import dataflow_graph, utils
+from model_opt.native_graphs import graph_with_weights
 
 
 class UtilsTest(unittest.TestCase):

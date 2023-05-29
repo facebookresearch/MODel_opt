@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import gc
-import olla
+import model_opt
 import pandas as pd
 import torch
 import torchvision
@@ -102,10 +102,10 @@ def run_olla(input, create_model, is_training=False, create_optimizer=None, loss
 
     if is_training:
         model.train()
-        model_olla = olla.optimize(model, input, optimizer=create_optimizer(model), loss_fn=loss_fn)
+        model_olla = model_opt.optimize(model, input, optimizer=create_optimizer(model), loss_fn=loss_fn)
     else:
         model.eval()
-        model_olla = olla.optimize(model, input)
+        model_olla = model_opt.optimize(model, input)
 
     model_olla(input)
 
@@ -118,6 +118,6 @@ print("fx:")
 max_fx = get_max(run_fx, create_model)
 print(f"max_fx is {max_fx}")
 
-print("olla:")
+print("model_opt:")
 max_olla = get_max(run_olla, create_model, is_training=is_training, create_optimizer=create_optimizer, loss_fn=loss_fn)
 print(f"max_olla is {max_olla}")

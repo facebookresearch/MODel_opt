@@ -9,7 +9,7 @@ import unittest
 import torch
 import torch.fx
 
-from olla.torch import torch_graph_importer
+from model_opt.torch import torch_graph_importer
 
 
 class TorchGraphImporterTestVision(unittest.TestCase):

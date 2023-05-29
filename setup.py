@@ -44,7 +44,7 @@ if __name__ == "__main__":
     write_version_file()
 
     setuptools.setup(
-        name="olla",
+        name="model_opt",
         description="Optimizing the Lifetime and Location of Arrays",
         version=version,
         license='MIT',

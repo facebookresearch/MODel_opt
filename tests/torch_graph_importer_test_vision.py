@@ -10,7 +10,7 @@ import torch
 import torch.fx
 import torchvision
 
-from olla.torch import torch_graph_importer
+from model_opt.torch import torch_graph_importer
 
 
 class TorchGraphImporterTestVision(unittest.TestCase):

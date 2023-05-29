@@ -6,7 +6,7 @@
 
 import unittest
 
-from olla import dataflow_graph
+from model_opt import dataflow_graph
 
 
 class DataflowGraphTest(unittest.TestCase):

@@ -9,8 +9,8 @@ import os
 
 import torch
 
-from olla.native_graphs import graph_with_gradients
-from olla.torch import spill_profiler
+from model_opt.native_graphs import graph_with_gradients
+from model_opt.torch import spill_profiler
 
 
 class SpillProfilterTest(unittest.TestCase):

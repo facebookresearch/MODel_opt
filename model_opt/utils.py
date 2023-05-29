@@ -7,7 +7,7 @@
 from inspect import currentframe
 
 import intervaltree
-from olla import dataflow_graph
+from model_opt import dataflow_graph
 
 
 def get_linenumber():

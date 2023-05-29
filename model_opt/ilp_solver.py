@@ -8,7 +8,7 @@ import sys
 import logging
 from typing import Any, Callable, Dict, List, Optional, Union
 from dataclasses import dataclass
-from olla.gurobi_utils import get_gurobi_env
+from model_opt.gurobi_utils import get_gurobi_env
 
 import gurobipy as gr
 

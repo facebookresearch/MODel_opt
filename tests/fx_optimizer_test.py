@@ -9,10 +9,10 @@ import unittest
 import torch
 import torchvision
 
-from olla import training_graph_optimizer, utils
-from olla import simulator
-from olla.torch import fx_profiler, torch_graph_importer
-from olla.torch.fx_optimizer import FXOptimizer
+from model_opt import training_graph_optimizer, utils
+from model_opt import simulator
+from model_opt.torch import fx_profiler, torch_graph_importer
+from model_opt.torch.fx_optimizer import FXOptimizer
 
 MB = 2**20
 

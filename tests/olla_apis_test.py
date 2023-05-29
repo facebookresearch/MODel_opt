@@ -8,7 +8,7 @@ import torch
 import torchvision
 import unittest
 
-import olla
+import model_opt
 
 class OLLAAPIsTest(unittest.TestCase):
     def testTrivialEval(self):
@@ -24,13 +24,13 @@ class OLLAAPIsTest(unittest.TestCase):
         input = torch.randn((1), requires_grad=False)
 
         model.eval()
-        model_opt = olla.optimize(model, input)
+        model_optimized = model_opt.optimize(model, input)
 
         y_orig = model(input)
-        y = model_opt(input)
+        y = model_optimized(input)
         assert(torch.allclose(y, y_orig))
 
-        y2 = model_opt(input)
+        y2 = model_optimized(input)
         # since this is inference mode, everytime we run the model with same input, we should get same output
         assert(torch.allclose(y, y2))
 
@@ -49,13 +49,13 @@ class OLLAAPIsTest(unittest.TestCase):
         loss_fn = torch.nn.MSELoss()
 
         model.train()
-        model_opt = olla.optimize(model, input, optimizer=optimizer, loss_fn=loss_fn)
+        model_optimized = model_opt.optimize(model, input, optimizer=optimizer, loss_fn=loss_fn)
 
         y_orig = model(input)
-        y = model_opt(input)
+        y = model_optimized(input)
         assert(torch.allclose(y, y_orig))
 
-        y2 = model_opt(input)
+        y2 = model_optimized(input)
         # everytime we run the model, the weights get updated, so we expect the output to be different
         assert(not torch.allclose(y, y2))
 
@@ -73,13 +73,13 @@ class OLLAAPIsTest(unittest.TestCase):
         input = torch.randn((3, 4), requires_grad=False)
 
         model.eval()
-        model_opt = olla.optimize(model, input)
+        model_optimized = model_opt.optimize(model, input)
 
         y_orig = model(input)
-        y = model_opt(input)
+        y = model_optimized(input)
         assert(torch.allclose(y, y_orig))
 
-        y2 = model_opt(input)
+        y2 = model_optimized(input)
         # since this is inference mode, everytime we run the model with same input, we should get same output
         assert(torch.allclose(y, y2))
 
@@ -99,13 +99,13 @@ class OLLAAPIsTest(unittest.TestCase):
         loss_fn = torch.nn.MSELoss()
 
         model.train()
-        model_opt = olla.optimize(model, input, optimizer=optimizer, loss_fn=loss_fn)
+        model_optimized = model_opt.optimize(model, input, optimizer=optimizer, loss_fn=loss_fn)
 
         y_orig = model(input)
-        y = model_opt(input)
+        y = model_optimized(input)
         assert(torch.allclose(y, y_orig))
 
-        y2 = model_opt(input)
+        y2 = model_optimized(input)
         # everytime we run the model, the weights get updated, so we expect the output to be different
         assert(not torch.allclose(y, y2))
 
@@ -114,14 +114,14 @@ class OLLAAPIsTest(unittest.TestCase):
         input = torch.randn((1, 3, 224, 224), requires_grad=False)
 
         model.eval()
-        model_opt = olla.optimize(model, input)
+        model_optimized = model_opt.optimize(model, input)
 
         y_orig = model(input)
-        y = model_opt(input)
+        y = model_optimized(input)
         assert(torch.allclose(y, y_orig))
 
         y2_orig = model(input)
-        y2 = model_opt(input)
+        y2 = model_optimized(input)
         # since this is inference mode, everytime we run the model with same input, we should get same output
         assert(torch.allclose(y2_orig, y_orig))
         assert(torch.allclose(y, y2))
@@ -133,12 +133,12 @@ class OLLAAPIsTest(unittest.TestCase):
         loss_fn = torch.nn.MSELoss()
 
         model.train()
-        model_opt = olla.optimize(model, input, optimizer=optimizer, loss_fn=loss_fn)
+        model_optimized = model_opt.optimize(model, input, optimizer=optimizer, loss_fn=loss_fn)
 
         y_orig = model(input)
-        y = model_opt(input)
+        y = model_optimized(input)
         assert(torch.allclose(y, y_orig))
 
-        y2 = model_opt(input)
+        y2 = model_optimized(input)
         # everytime we run the model, the weights get updated, so we expect the output to be different
         assert(not torch.allclose(y, y2))

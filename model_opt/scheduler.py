@@ -10,7 +10,7 @@ import sys
 import time
 from collections import defaultdict, OrderedDict
 
-from olla import dataflow_graph, ilp_solver
+from model_opt import dataflow_graph, ilp_solver
 
 
 class Scheduler:

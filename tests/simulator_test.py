@@ -6,8 +6,8 @@
 
 import unittest
 
-from olla import simulator
-from olla.native_graphs import (
+from model_opt import simulator
+from model_opt.native_graphs import (
     control_dep_graph,
     diamond_graph,
     graph_with_two_weights,

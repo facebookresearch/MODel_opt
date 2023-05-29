@@ -19,9 +19,9 @@ import torchaudio
 import torchtext
 import torchvision
 
-from olla import simulator, training_graph_optimizer, utils, visualizer
-from olla.torch import fx_profiler, torch_graph_importer
-from olla.torch.fx_optimizer import FXOptimizer
+from model_opt import simulator, training_graph_optimizer, utils, visualizer
+from model_opt.torch import fx_profiler, torch_graph_importer
+from model_opt.torch.fx_optimizer import FXOptimizer
 
 # Fix the environment to enable graphviz to work.
 # del os.environ["LD_LIBRARY_PATH"]

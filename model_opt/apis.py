@@ -7,9 +7,9 @@
 import torch
 import torchvision
 
-from olla import training_graph_optimizer, utils
-from olla.torch.torch_graph_importer import TorchGraphImporter
-from olla.torch.fx_optimizer import FXOptimizer
+from model_opt import training_graph_optimizer, utils
+from model_opt.torch.torch_graph_importer import TorchGraphImporter
+from model_opt.torch.fx_optimizer import FXOptimizer
 
 def optimize(model, inputs, loss_fn=None, optimizer=None, node_reordering=True, defragmentation=False):
     # import fx graph and data flow graph

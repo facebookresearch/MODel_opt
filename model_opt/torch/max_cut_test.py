@@ -11,8 +11,8 @@ import torch
 import torch.fx
 import torchvision
 
-from olla import max_cut
-from olla.torch import torch_graph_importer
+from model_opt import max_cut
+from model_opt.torch import torch_graph_importer
 
 
 class MaxCutTest(unittest.TestCase):

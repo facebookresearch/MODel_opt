@@ -7,7 +7,7 @@
 import unittest
 import os
 
-from olla import dataflow_graph, defragmenter
+from model_opt import dataflow_graph, defragmenter
 
 
 class DefragmenterTest(unittest.TestCase):

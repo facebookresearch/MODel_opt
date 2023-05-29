@@ -9,7 +9,7 @@ import unittest
 
 import torch
 import torchvision
-from olla.torch import torch_graph_importer
+from model_opt.torch import torch_graph_importer
 
 
 class FXProfilterTest(unittest.TestCase):

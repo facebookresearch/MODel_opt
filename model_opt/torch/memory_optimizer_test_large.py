@@ -11,8 +11,8 @@ import unittest
 import torch
 import torch.fx
 
-from olla import simulator, training_graph_optimizer, utils
-from olla.torch import torch_graph_importer
+from model_opt import simulator, training_graph_optimizer, utils
+from model_opt.torch import torch_graph_importer
 
 # Fix the environment to enable graphviz to work.
 del os.environ["LD_LIBRARY_PATH"]

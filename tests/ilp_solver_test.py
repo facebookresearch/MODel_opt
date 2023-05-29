@@ -6,7 +6,7 @@
 
 import unittest
 
-from olla import ilp_solver
+from model_opt import ilp_solver
 
 
 class ILPSolverTest(unittest.TestCase):

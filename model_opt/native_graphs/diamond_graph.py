@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from olla import dataflow_graph
+from model_opt import dataflow_graph
 
 graph = dataflow_graph.Graph()
 

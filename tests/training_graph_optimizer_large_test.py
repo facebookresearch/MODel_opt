@@ -7,8 +7,8 @@
 import unittest
 import os
 
-from olla import training_graph_optimizer, utils
-from olla.native_graphs import graph_with_gradients
+from model_opt import training_graph_optimizer, utils
+from model_opt.native_graphs import graph_with_gradients
 
 
 class SchedulerTest(unittest.TestCase):
