@@ -51,7 +51,7 @@ If you use MODel, please use the below BibTex for citing:
   author={Steiner, Benoit and Elhoushi, Mostafa and Kahn, Jacob, and Hegarty, James},
   journal={Accepted in International Conference on Machine Learning, ICML 2023}
   doi={10.48550/arXiv.2210.12924},
-  year={2022},
+  year={2023},
 }
 ```
 
