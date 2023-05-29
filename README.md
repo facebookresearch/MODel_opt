@@ -1,27 +1,27 @@
-# MODel
+# MODeL
 
-[![CircleCI](https://img.shields.io/circleci/build/github/facebookresearch/MODel_opt?label=CircleCI)](https://app.circleci.com/pipelines/github/facebookresearch/MODel_opt)
+[![CircleCI](https://img.shields.io/circleci/build/github/facebookresearch/MODeL_opt?label=CircleCI)](https://app.circleci.com/pipelines/github/facebookresearch/MODeL_opt)
 
-*MODel* (Memory Optimizations for Deep Learning)[^1] [Accepted in ICML 2023] enables training larger deep neural networks on existing hardware. It accomplishes this with a few techniques:
+*MODeL* (Memory Optimizations for Deep Learning)[^1] [Accepted in ICML 2023] enables training larger deep neural networks on existing hardware. It accomplishes this with a few techniques:
 
 - *Operator order optimization* — reodering tensor operators to reduce peak memory usage
 - *Fragmentation reduction* — dynamic memory profiling and scheduling to better-utilize memory.
 
-Our approach is described in detail on the [MODel arXiv paper](https://arxiv.org/abs/2210.12924). See [citing](#citation) below to attribute the work.
+Our approach is described in detail on the [MODeL arXiv paper](https://arxiv.org/abs/2210.12924). See [citing](#citation) below to attribute the work.
 
 ## Quickstart
 
-Installing MODel in your Python environment is simple:
+Installing MODeL in your Python environment is simple:
 
 ```bash
-git clone https://github.com/facebookresearch/MODel_opt
+git clone https://github.com/facebookresearch/MODeL_opt
 pip install . [--extra-index-url <url>]
 ```
 
 **Note**:
 
 - The above install will attempt to install `torch`, `torchaudio`, `torchvision`, and `torchtext` based on default distributions. To install for your CUDA version/OS, see the [PyTorch Getting Started](https://pytorch.org/get-started/locally/) documentation, appending the `--extra-index-url` flag and value to the above install command as needed.
-- MODel is tested with Gurobi 9.5.2; use your own license or version as needed.
+- MODeL is tested with Gurobi 9.5.2; use your own license or version as needed.
 
 ### Benchmarks
 
@@ -43,11 +43,11 @@ Run unit tests that are skipped with by setting `RUN_SKIPPED=1` in the environme
 
 ## Citation
 
-If you use MODel, please use the below BibTex for citing:
+If you use MODeL, please use the below BibTex for citing:
 
 ```text
 @article{steiner2023model,
-  title={MODel: Memory Optimizations for Deep Learning},
+  title={MODeL: Memory Optimizations for Deep Learning},
   author={Steiner, Benoit and Elhoushi, Mostafa and Kahn, Jacob, and Hegarty, James},
   journal={Accepted in International Conference on Machine Learning, ICML 2023}
   doi={10.48550/arXiv.2210.12924},
