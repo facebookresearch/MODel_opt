@@ -1,6 +1,6 @@
 # MODeL
 
-[![CircleCI](https://img.shields.io/circleci/build/github/facebookresearch/MODeL_opt?label=CircleCI)](https://app.circleci.com/pipelines/github/facebookresearch/MODeL_opt)
+[![CircleCI](https://img.shields.io/circleci/build/github/facebookresearch/MODel_opt?label=CircleCI)](https://app.circleci.com/pipelines/github/facebookresearch/MODel_opt)
 
 *MODeL* (Memory Optimizations for Deep Learning)[^1] [Accepted in ICML 2023] enables training larger deep neural networks on existing hardware. It accomplishes this with a few techniques:
 
