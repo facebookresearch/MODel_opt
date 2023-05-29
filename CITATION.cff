@@ -10,7 +10,7 @@ authors:
   given-names: "Jacob"
 - family-names: "Hegarty"
   given-names: "James"
-title: "MODel: Memory Optimizations for Deep Learning"
+title: "MODeL: Memory Optimizations for Deep Learning"
 doi: 10.48550/arXiv.2210.12924
 date-released: 2022-10-24
 url: "https://arxiv.org/abs/2210.12924"
@@ -26,7 +26,7 @@ preferred-citation:
     given-names: "Jacob"
   - family-names: "Hegarty"
     given-names: "James"
-  title: "MODel: Memory Optimizations for Deep Learning"
+  title: "MODeL: Memory Optimizations for Deep Learning"
   doi: 10.48550/arXiv.2210.12924
   month: 10
   year: 2022
