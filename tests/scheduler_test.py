@@ -7,8 +7,8 @@
 import unittest
 import os
 
-from olla import scheduler, utils
-from olla.native_graphs import (
+from model_opt import scheduler, utils
+from model_opt.native_graphs import (
     control_dep_graph,
     diamond_graph,
     multi_fanin_output_graph,

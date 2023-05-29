@@ -6,7 +6,7 @@
 
 import unittest
 
-from olla import dataflow_graph, max_cut
+from model_opt import dataflow_graph, max_cut
 
 
 class MaxCutTest(unittest.TestCase):

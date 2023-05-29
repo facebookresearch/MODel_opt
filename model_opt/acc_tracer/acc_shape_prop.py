@@ -12,7 +12,7 @@ import torch.fx
 
 # TODO: import properly from third-party library
 # import torch_tensorrt.fx.tracer.acc_tracer.acc_ops as acc_ops
-import olla.acc_tracer.acc_ops as acc_ops
+import model_opt.acc_tracer.acc_ops as acc_ops
 
 from torch.fx.passes import shape_prop
 

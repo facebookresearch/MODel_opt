@@ -9,7 +9,7 @@ from collections.abc import Iterable
 
 # TODO: import properly from third-party library
 # import torch_tensorrt.fx.tracer.acc_tracer.acc_ops as acc_tracer
-import olla.acc_tracer.acc_tracer as acc_tracer
+import model_opt.acc_tracer.acc_tracer as acc_tracer
 
 import numpy as np
 import pandas as pd
@@ -23,8 +23,8 @@ except Exception as e:
 
 from functorch import make_fx
 from functorch.compile import compiled_function, default_partition
-from olla import dataflow_graph
-from olla.torch import fx_profiler, spill_profiler
+from model_opt import dataflow_graph
+from model_opt.torch import fx_profiler, spill_profiler
 from torch.fx.passes.shape_prop import ShapeProp
 
 # By default torch.fx.Tracer treats torch.nn.Module nodes as leaf nodes and hence doesn't trace them to obtain weight or bias nodes.

@@ -12,7 +12,7 @@ import sys
 from collections import defaultdict, OrderedDict
 
 import intervaltree
-from olla import dataflow_graph, ilp_solver, utils
+from model_opt import dataflow_graph, ilp_solver, utils
 
 logger = logging.getLogger(__name__)
 class Scheduler:

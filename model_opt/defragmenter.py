@@ -6,7 +6,7 @@
 
 from collections import OrderedDict
 
-from olla import ilp_solver
+from model_opt import ilp_solver
 
 
 # Optimize a memory layout to limit fragmentation.

@@ -44,7 +44,7 @@ if __name__ == "__main__":
     write_version_file()
 
     setuptools.setup(
-        name="olla",
+        name="model_opt",
         description="Optimizing the Lifetime and Location of Arrays",
         version=version,
         license='MIT',
@@ -59,5 +59,5 @@ if __name__ == "__main__":
             "Topic :: Scientific/Engineering :: Artificial Intelligence",
             "Operating System :: OS Independent",
         ],
-        project_urls={"Source": "https://github.com/facebookresearch/OLLA"},
+        project_urls={"Source": "https://github.com/facebookresearch/MODel_opt"},
     )

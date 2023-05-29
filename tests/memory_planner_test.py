@@ -6,8 +6,8 @@
 
 import unittest
 
-from olla import memory_planner
-from olla.native_graphs import (
+from model_opt import memory_planner
+from model_opt.native_graphs import (
     control_dep_graph,
     diamond_graph,
     multi_fanin_output_graph,

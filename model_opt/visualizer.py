@@ -8,7 +8,7 @@ import logging
 import math
 
 from PIL import Image, ImageDraw
-from olla import utils
+from model_opt import utils
 
 logger = logging.getLogger(__name__)
 

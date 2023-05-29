@@ -9,8 +9,8 @@ import unittest
 
 import torch
 import torch.fx
-from olla import dataflow_graph
-from olla.torch import torch_graph_importer
+from model_opt import dataflow_graph
+from model_opt.torch import torch_graph_importer
 
 try:
     del os.environ["LD_LIBRARY_PATH"]

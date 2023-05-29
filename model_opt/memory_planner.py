@@ -6,7 +6,7 @@
 
 import copy
 
-from olla import dataflow_graph, scheduler, utils
+from model_opt import dataflow_graph, scheduler, utils
 
 
 class MemoryPlanner:
