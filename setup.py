@@ -59,5 +59,5 @@ if __name__ == "__main__":
             "Topic :: Scientific/Engineering :: Artificial Intelligence",
             "Operating System :: OS Independent",
         ],
-        project_urls={"Source": "https://github.com/facebookresearch/OLLA"},
+        project_urls={"Source": "https://github.com/facebookresearch/MODel_opt"},
     )

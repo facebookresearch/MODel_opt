@@ -52,7 +52,7 @@ commands:
           command: |
             python -m unittest discover -s tests --pattern "*_test.py"
 
-  install_olla:
+  install_model_opt:
     steps:
       - run:
           name: "Install model_opt from source"
@@ -84,7 +84,7 @@ jobs:
       - install_system_dependencies
       - setup_python
       - checkout
-      - install_olla
+      - install_model_opt
       - test_external_import
 
 workflows:

@@ -97,17 +97,17 @@ def run_fx(input, create_model):
 
     model(input)
 
-def run_olla(input, create_model, is_training=False, create_optimizer=None, loss_fn=None):
+def run_model_opt(input, create_model, is_training=False, create_optimizer=None, loss_fn=None):
     model = create_model()
 
     if is_training:
         model.train()
-        model_olla = model_opt.optimize(model, input, optimizer=create_optimizer(model), loss_fn=loss_fn)
+        model_optimized = model_opt.optimize(model, input, optimizer=create_optimizer(model), loss_fn=loss_fn)
     else:
         model.eval()
-        model_olla = model_opt.optimize(model, input)
+        model_optimized = model_opt.optimize(model, input)
 
-    model_olla(input)
+    model_optimized(input)
 
 print("Eager:")
 max_eager = get_max(run_eager, create_model, is_training=is_training, create_optimizer=create_optimizer, loss_fn=loss_fn)
@@ -119,5 +119,5 @@ max_fx = get_max(run_fx, create_model)
 print(f"max_fx is {max_fx}")
 
 print("model_opt:")
-max_olla = get_max(run_olla, create_model, is_training=is_training, create_optimizer=create_optimizer, loss_fn=loss_fn)
-print(f"max_olla is {max_olla}")
+max_model_opt = get_max(run_model_opt, create_model, is_training=is_training, create_optimizer=create_optimizer, loss_fn=loss_fn)
+print(f"max_model_opt is {max_model_opt}")

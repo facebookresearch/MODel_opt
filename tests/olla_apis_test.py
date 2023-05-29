@@ -10,7 +10,7 @@ import unittest
 
 import model_opt
 
-class OLLAAPIsTest(unittest.TestCase):
+class MODELOPTAPIsTest(unittest.TestCase):
     def testTrivialEval(self):
         class SimpleModule(torch.nn.Module):
             def __init__(self):
