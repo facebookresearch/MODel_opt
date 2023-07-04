@@ -10,22 +10,41 @@
 Our approach is described in detail on the [MODeL arXiv paper](https://arxiv.org/abs/2210.12924). See [citing](#citation) below to attribute the work.
 
 ## Quickstart
-
+### Setup
 Installing MODeL in your Python environment is simple:
 
 ```bash
 git clone https://github.com/facebookresearch/MODeL_opt
-pip install . [--extra-index-url <url>]
+cd MODEL_opt
+conda create --name model_opt python=3.10
+conda activate model_opt
+pip install .
 ```
 
 **Note**:
 
-- The above install will attempt to install `torch`, `torchaudio`, `torchvision`, and `torchtext` based on default distributions. To install for your CUDA version/OS, see the [PyTorch Getting Started](https://pytorch.org/get-started/locally/) documentation, appending the `--extra-index-url` flag and value to the above install command as needed.
-- MODeL is tested with Gurobi 9.5.2; use your own license or version as needed.
+- The above install will attempt to install `torch`, `torchaudio`, `torchvision`, and `torchtext` based on default distributions. To install for your CUDA version/OS, see the [PyTorch Getting Started](https://pytorch.org/get-started/locally/) documentation, appending the `--extra-index-url` flag and value to the above install command as needed: `pip install . --extra-index-url <url>`
+- MODeL is tested with Gurobi 9.5.2; use your own license or version as needed. You can view the steps below to setup Gurobi's license:
+
+<details>
+<summary><b>Steps to Setup Gurobi License</b></summary>
+
+1. Make an academic account with Gurobi at: https://pages.gurobi.com/registration
+2. Request an acadmic license at: https://www.gurobi.com/downloads/end-user-license-agreement-academic/
+3. Install the license by running the `grbgetkey` command at the end of the page. If you save the license to a non-default location (outside your home directory), you will need to export the `GRB_LICENSE_FILE` variable with the path to the licence.
+4. In your `~/.bashrc` you can setup the following environment variables:
+```
+# Gurobi
+export OLLA_GUROBI_ISV_NAME=...
+export OLLA_GUROBI_ISV_APP_NAME=...
+export OLLA_GUROBI_ISV_EXPIRATION=...
+export OLLA_GUROBI_ISV_CODE=...
+```
+
+</details>
 
 ### Benchmarks
-
-To run benchmarks:
+To run all benchmarks:
 
 ```
 python benchmarks.py
