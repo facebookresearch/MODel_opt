@@ -18,13 +18,17 @@ git clone https://github.com/facebookresearch/MODeL_opt
 cd MODEL_opt
 conda create --name model_opt python=3.10
 conda activate model_opt
-pip install .
+pip install . gurobipy==9.5.2
 ```
 
-**Note**:
+**Notes**:
 
-- The above install will attempt to install `torch`, `torchaudio`, `torchvision`, and `torchtext` based on default distributions. To install for your CUDA version/OS, see the [PyTorch Getting Started](https://pytorch.org/get-started/locally/) documentation, appending the `--extra-index-url` flag and value to the above install command as needed: `pip install . --extra-index-url <url>`
-- MODeL is tested with Gurobi 9.5.2; use your own license or version as needed. You can view the steps below to setup Gurobi's license:
+- Regarding PyTorch dependencies:
+  - The above `pip install` command will attempt to install `torch`, `torchaudio`, `torchvision`, and `torchtext` based on default distributions. To install for your CUDA version/OS, see the [PyTorch Getting Started](https://pytorch.org/get-started/locally/) documentation, appending the `--extra-index-url` flag and value to the above install command as needed: `pip install . gurobipy==9.5.2 --extra-index-url <url>`
+- Regarding Gurobi dependency:
+  - MODeL is tested with Gurobi 9.5.2; use your own license or version as needed: `pip install . gurobipy==<your Gurobi version here>`. 
+  - Different Girobi versions are slightly different numerically. Hence using a Gurobu version different from what we are using in this repo could lead to different solutions in our benchmarks and test cases, although those different solutions should have the same objective value.
+  - You can view the steps below to setup Gurobi's license:
 
 <details>
 <summary><b>Steps to Setup Gurobi License</b></summary>
