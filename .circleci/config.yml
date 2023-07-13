@@ -3,7 +3,7 @@ version: 2.1
 gpu: &gpu
   machine:
     image: ubuntu-2004-cuda-11.4:202110-01
-  resource_class: gpu.nvidia.large
+  resource_class: gpu.nvidia.medium
 
 commands:
   install_system_dependencies:
