@@ -86,9 +86,18 @@ bash benchmarks.sh
 ### Running Tests
 
 Run all unit tests with:
-
 ```
 python -m unittest discover -s tests --pattern "*_test.py"
+```
+
+Run tests in a specific file:
+```
+python -m unittest tests/ilp_solver_test.py
+```
+
+Run specific unit test:
+```
+python -m unittest tests.ilp_solver_test.ILPSolverTest.testSimpleProblem
 ```
 
 Run unit tests that are skipped with by setting `RUN_SKIPPED=1` in the environment before the command.
