@@ -48,18 +48,56 @@ export OLLA_GUROBI_ISV_CODE=...
 </details>
 
 ### Benchmarks
-To run all benchmarks:
+To run a specific benchmark:
+```
+python benchmarks.py --model alexnet --batch-size 32 --mode train
+```
+You could expect an output log like this:
+<details>
+<summary><b>Command log</b></summary>
 
 ```
-python benchmarks.py
+LOADING MODEL alexnet IN train MODE WITH BATCH SIZE 32
+MODEL STATS: #RAW NODES=144, #RAW EDGES=125
+MODEL STATS: #ACTUAL OPERATORS=76, #ACTUAL TENSORS=72
+  CANONICALIZING MODEL
+  CONSTRAINING WEIGHT UPDATES
+  CONSTRAINING TENSOR GENERATORS
+  CHECKING GRAPH
+BENCHMARKING MODEL alexnet IN train MODE WITH BATCH SIZE 32
+  SIMULATED PEAK MEM USAGE IS 0.5618 GB
+  PERFORM NODE REORDERING
+Set parameter OutputFlag to value 1
+/private/home/melhoushi/miniconda3/envs/model_opt/lib/python3.10/site-packages/torch/fx/node.py:242: UserWarning: Trying to prepend a node to itself. This behavior has no effect on the graph.
+  warnings.warn("Trying to prepend a node to itself. This behavior has no effect on the graph.")
+  REORDERED NODES IN 0.1s. SIMULATED PEAK MEMORY USAGE WAS 0.4783 GB (SAVED 14.860221%)
+```
+
+</details>
+
+- We support a large number of vision and language models, including: `alexnet`, `mobilenet`, `vit`, `bert`, `vit`, OPT models (from `opt-125m` and `opt-350m` all the way to `opt-66b`).
+- To view more options, run `python benchmarks.py --help`
+
+To run all benchmarks and reproduce the results in the paper:
+```
+bash benchmarks.sh
 ```
 
 ### Running Tests
 
 Run all unit tests with:
-
 ```
 python -m unittest discover -s tests --pattern "*_test.py"
+```
+
+Run tests in a specific file:
+```
+python -m unittest tests/ilp_solver_test.py
+```
+
+Run specific unit test:
+```
+python -m unittest tests.ilp_solver_test.ILPSolverTest.testSimpleProblem
 ```
 
 Run unit tests that are skipped with by setting `RUN_SKIPPED=1` in the environment before the command.
